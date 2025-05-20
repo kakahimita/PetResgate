@@ -1,0 +1,17 @@
+{
+  "name": "petresgate",
+  "version": "1.0.0",
+  "description": "# 🐾 PetResgate — Conectando Pets Perdidos aos Seus Lares",
+  "main": "src/app.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "readline-sync": "^1.4.10"
+  }
+}
