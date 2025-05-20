@@ -1,4 +1,4 @@
-const Usuario = require("../models/Usuario");
+import Usuario from "../models/Usuario.js";
 
 class AuthService {
   constructor() {
@@ -37,4 +37,4 @@ class AuthService {
   }
 }
 
-module.exports = AuthService;
+export default AuthService;
