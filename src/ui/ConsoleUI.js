@@ -1,51 +1,36 @@
+// src/ui/ConsoleUI.js
 import readlineSync from "readline-sync";
+import ConsoleRenderer from "./ConsoleRenderer.js"; // Importar o novo Renderer
 
 class ConsoleUI {
   constructor(petService, authService) {
     this.petService = petService;
     this.authService = authService;
+    this.renderer = new ConsoleRenderer(petService, authService); // Instanciar o Renderer
     this.usuarioLogado = null;
   }
 
+  // Métodos que usam renderer: limparConsole e pausar podem ser chamados via this.renderer
   limparConsole() {
-    // console.clear() pode não funcionar em todos os terminais,
-    // mas é a forma mais comum.
-    // Uma alternativa é imprimir várias linhas em branco:
-    // for (let i = 0; i < 50; i++) console.log('');
-    console.clear();
+    this.renderer.limparConsole();
   }
 
   pausar() {
-    readlineSync.keyInPause("\nPressione qualquer tecla para continuar...");
+    this.renderer.pausar();
   }
 
   exibirMenuPrincipal() {
-    this.limparConsole();
-    console.log("--------- Pet Resgate ---------");
-    if (this.usuarioLogado) {
-      console.log(`Usuário: ${this.usuarioLogado.nome}`);
-    }
-    console.log("\n1. Login");
-    console.log("2. Cadastrar Usuário");
-    console.log("3. Achados e Perdidos");
-    console.log("4. Registrar Pet Perdido"); // Adicionado aqui, requer login
-    console.log("5. Marcar Pet como Encontrado"); // Adicionado, requer login
-    console.log("6. Histórico de Reencontros");
-    if (this.usuarioLogado) {
-      console.log("7. Logout");
-    }
-    console.log("0. Sair");
-    console.log("_____________________________");
-    return readlineSync.question("Escolha uma opção: ");
+    return this.renderer.desenharMenuPrincipal(this.usuarioLogado);
   }
 
   processarLogin() {
-    this.limparConsole();
-    console.log("--- Login ---");
+    this.renderer.exibirTituloFormatado("LOGIN");
     const email = readlineSync.question("Email: ");
     const senha = readlineSync.question("Senha: ", { hideEchoBack: true });
     const resultado = this.authService.login(email, senha);
-    console.log(resultado.message);
+
+    this.renderer.exibirMensagem(resultado.message, resultado.success ? "success" : "error");
+
     if (resultado.success) {
       this.usuarioLogado = resultado.usuario;
     }
@@ -53,43 +38,44 @@ class ConsoleUI {
   }
 
   processarCadastroUsuario() {
-    this.limparConsole();
-    console.log("--- Cadastrar Novo Usuário ---");
+    this.renderer.exibirTituloFormatado("CADASTRAR USUÁRIO");
     const nome = readlineSync.question("Nome completo: ");
     const email = readlineSync.questionEMail("Email: ");
     const senha = readlineSync.question("Senha: ", { hideEchoBack: true });
-    // const confirmaSenha = readlineSync.question("Confirme a senha: ", { hideEchoBack: true });
-    // if (senha !== confirmaSenha) {
-    //     console.log("As senhas não coincidem.");
-    //     this.pausar();
-    //     return;
-    // }
+    const confirmaSenha = readlineSync.question("Confirme a senha: ", {
+      hideEchoBack: true,
+    });
+
+    if (senha !== confirmaSenha) {
+      this.renderer.exibirMensagem("As senhas não coincidem!", "warning");
+      this.pausar();
+      return;
+    }
+
     const resultado = this.authService.cadastrar(nome, email, senha);
-    console.log(resultado.message);
+    this.renderer.exibirMensagem(resultado.message, resultado.success ? "success" : "error");
     this.pausar();
   }
 
   processarLogout() {
     if (this.usuarioLogado) {
-      console.log(`\nAté logo, ${this.usuarioLogado.nome}!`);
+      this.renderer.exibirMensagem(`Até logo, ${this.usuarioLogado.nome}!`, "info");
       this.usuarioLogado = null;
     } else {
-      console.log("\nNenhum usuário logado.");
+      this.renderer.exibirMensagem("Nenhum usuário logado.", "info");
     }
     this.pausar();
   }
 
+    processarSobre() {
+      this.renderer.desenharTelaSobre();
+      this.pausar();
+    }
+
   exibirMenuAchadosEPerdidos() {
     let loopAchadosPerdidos = true;
     while (loopAchadosPerdidos) {
-      this.limparConsole();
-      console.log("--- Achados e Perdidos ---");
-      console.log("1. Listar todos os pets perdidos");
-      console.log("2. Buscar pet perdido por Nome");
-      console.log("3. Buscar pet perdido por Localidade");
-      console.log("0. Voltar para o Menu Principal");
-      console.log("---------------------------------");
-      const opcao = readlineSync.question("Escolha uma opção: ");
+      const opcao = this.renderer.desenharMenuAchadosEPerdidos();
 
       switch (opcao) {
         case "1":
@@ -105,70 +91,57 @@ class ConsoleUI {
           loopAchadosPerdidos = false;
           break;
         default:
-          console.log("Opção inválida.");
+          this.renderer.exibirMensagem("Opção inválida.", "warning");
           this.pausar();
       }
     }
   }
-
+  
   listarPetsComDetalhes(pets, titulo) {
-    this.limparConsole();
-    console.log(`--- ${titulo} ---`);
-    if (!pets || pets.length === 0) {
-      console.log("Nenhum pet encontrado com os critérios informados.");
-    } else {
-      pets.forEach((pet) => {
-        const tutor = this.authService.getUsuarioById(pet.idTutor);
-        console.log(pet.getDetalhes());
-        if (tutor) {
-          console.log(`Tutor: ${tutor.nome}`);
+    const temPets = this.renderer.desenharTabelaPets(pets, titulo);
+
+    if (temPets) { // Só pede ID se a tabela foi desenhada com pets
+      console.log("\n🔍 Deseja ver mais detalhes de algum pet?");
+      const idParaDetalhes = readlineSync.question("Digite o ID do pet ou 0 para voltar: ");
+      if (idParaDetalhes !== "0") {
+        const petSelecionado = this.petService.buscarPetPorId(parseInt(idParaDetalhes));
+        if (petSelecionado) {
+          this.renderer.mostrarDetalhesPet(petSelecionado);
+        } else {
+          this.renderer.exibirMensagem("Pet não encontrado com o ID informado.", "error");
         }
-        console.log("====================================");
-      });
+      }
     }
     this.pausar();
   }
 
   listarPetsPerdidos() {
     const petsPerdidos = this.petService.listarTodosOsPets("PERDIDO");
-    this.listarPetsComDetalhes(petsPerdidos, "Pets Perdidos Registrados");
+    this.listarPetsComDetalhes(petsPerdidos, "PETS PERDIDOS REGISTRADOS");
   }
 
   buscarPetPerdidoPorNome() {
-    this.limparConsole();
-    const nome = readlineSync.question(
-      "Digite o nome (ou parte do nome) do pet: "
-    );
+    this.renderer.exibirTituloFormatado("BUSCAR PET POR NOME");
+    const nome = readlineSync.question("Digite o nome (ou parte do nome) do pet: ");
     const petsEncontrados = this.petService.buscarPets({ nome }, "PERDIDO");
-    this.listarPetsComDetalhes(
-      petsEncontrados,
-      `Pets Perdidos com nome contendo "${nome}"`
-    );
+    this.listarPetsComDetalhes(petsEncontrados, `PETS COM NOME CONTENDO "${nome.toUpperCase()}"`);
   }
 
   buscarPetPerdidoPorLocalidade() {
-    this.limparConsole();
-    const localidade = readlineSync.question(
-      "Digite a localidade (ou parte dela): "
-    );
-    const petsEncontrados = this.petService.buscarPets(
-      { localidade },
-      "PERDIDO"
-    );
-    this.listarPetsComDetalhes(
-      petsEncontrados,
-      `Pets Perdidos em localidade contendo "${localidade}"`
-    );
+    this.renderer.exibirTituloFormatado("BUSCAR PET POR LOCALIDADE");
+    const localidade = readlineSync.question("Digite a localidade (ou parte dela): ");
+    const petsEncontrados = this.petService.buscarPets({ localidade }, "PERDIDO");
+    this.listarPetsComDetalhes(petsEncontrados, `PETS EM LOCALIDADE "${localidade.toUpperCase()}"`);
   }
 
   processarRegistroPetPerdido() {
     if (!this.usuarioLogado) {
-      console.log("\nVocê precisa estar logado para registrar um pet perdido.");
+      this.renderer.exibirMensagem("Você precisa estar logado para registrar um pet perdido.", "warning");
       this.pausar();
       return;
     }
-    this.limparConsole();
-    console.log("--- Registrar Novo Pet Perdido ---");
+
+    this.renderer.exibirTituloFormatado("REGISTRAR NOVO PET PERDIDO");
     const dadosPet = {
       nome: readlineSync.question("Nome do pet: "),
       especie: readlineSync.question("Espécie (ex: Cachorro, Gato): "),
@@ -177,81 +150,66 @@ class ConsoleUI {
       idade: readlineSync.question("Idade aproximada: "),
       cor: readlineSync.question("Cor predominante: "),
       localPerdido: readlineSync.question("Último local visto: "),
-      dataPerdido: readlineSync.question(
-        "Data em que foi perdido (DD/MM/AAAA): "
-      ),
-      comentarioTutor: readlineSync.question(
-        "Alguma observação importante? (ex: usa coleira, tem mancha específica): "
-      ),
-      foto:
-        readlineSync.question(
-          "Link para uma foto (opcional, deixe em branco se não tiver): "
-        ) || undefined,
+      dataPerdido: readlineSync.question("Data em que foi perdido (DD/MM/AAAA): "),
+      comentarioTutor: readlineSync.question("Alguma observação importante? "),
+      foto: readlineSync.question("Link para uma foto (opcional): ") || undefined,
     };
 
-    const novoPet = this.petService.registrarPetPerdido(
-      dadosPet,
-      this.usuarioLogado.id
-    );
-    this.usuarioLogado.adicionarPetRegistrado(novoPet.id); // Adiciona o ID do pet ao usuário
+    // Validações básicas poderiam ser adicionadas aqui ou no InputHandler
+    if (!dadosPet.nome || !dadosPet.especie || !dadosPet.localPerdido || !dadosPet.dataPerdido) {
+        this.renderer.exibirMensagem("Nome, espécie, local perdido e data perdido são obrigatórios.", "error");
+        this.pausar();
+        return;
+    }
 
-    console.log(
-      `\n✅ Pet "${novoPet.nome}" (ID: ${novoPet.id}) registrado com sucesso pelo tutor ${this.usuarioLogado.nome}!`
-    );
+
+    const novoPet = this.petService.registrarPetPerdido(dadosPet, this.usuarioLogado.id);
+    this.usuarioLogado.adicionarPetRegistrado(novoPet.id);
+    this.renderer.exibirMensagem(`Pet "${novoPet.nome}" (ID: ${novoPet.id}) registrado com sucesso!`, "success");
     this.pausar();
   }
 
   processarMarcarPetComoEncontrado() {
     if (!this.usuarioLogado) {
-      console.log("\nVocê precisa estar logado para esta funcionalidade.");
+      this.renderer.exibirMensagem("Você precisa estar logado para esta funcionalidade.", "warning");
       this.pausar();
       return;
     }
-    this.limparConsole();
-    console.log("--- Marcar Pet como Encontrado ---");
+    this.renderer.exibirTituloFormatado("MARCAR PET COMO ENCONTRADO");
 
-    // Lista apenas pets perdidos registrados PELO USUÁRIO LOGADO
     const petsDoUsuario = this.usuarioLogado.petsRegistrados
       .map((petId) => this.petService.buscarPetPorId(petId))
       .filter((pet) => pet && pet.status === "PERDIDO");
 
     if (petsDoUsuario.length === 0) {
-      console.log("Você não possui pets registrados como perdidos no momento.");
+      this.renderer.exibirMensagem("Você não possui pets registrados como perdidos no momento.", "info");
       this.pausar();
       return;
     }
 
-    console.log("Seus pets registrados como PERDIDOS:");
-    petsDoUsuario.forEach((pet) => {
-      console.log(`ID: ${pet.id} - Nome: ${pet.nome}`);
-    });
+    console.log("🐾 Seus pets registrados como PERDIDOS:\n");
+    // Usar renderer.desenharTabelaPets aqui para consistência, mesmo que simples
+    const petsFormatadosParaTabela = petsDoUsuario.map(p => ({id: p.id, nome: p.nome, status: p.status})); // Ajustar para o formato da tabela
+    this.renderer.desenharTabelaPets(petsFormatadosParaTabela, "SEUS PETS PERDIDOS");
 
-    const idPetStr = readlineSync.question(
-      "\nDigite o ID do pet que foi encontrado: "
-    );
+
+    const idPetStr = readlineSync.question("\nDigite o ID do pet que foi encontrado (0 para cancelar): ");
+    if (idPetStr === "0") return;
     const idPet = parseInt(idPetStr);
 
-    // Verifica se o pet pertence ao usuário logado e está perdido
     const petParaMarcar = petsDoUsuario.find((p) => p.id === idPet);
-
     if (petParaMarcar) {
       const resultado = this.petService.marcarPetComoEncontrado(idPet);
-      console.log(resultado.message);
+      this.renderer.exibirMensagem(resultado.message, resultado.success ? "success" : "error");
     } else {
-      console.log(
-        "ID inválido ou o pet não pertence a você/não está como perdido."
-      );
+      this.renderer.exibirMensagem("ID inválido ou o pet não pertence a você/não está como perdido.", "error");
     }
     this.pausar();
   }
 
   processarHistoricoReencontros() {
-    this.limparConsole();
     const petsReencontrados = this.petService.listarHistoricoReencontros();
-    this.listarPetsComDetalhes(
-      petsReencontrados,
-      "Histórico de Pets Reencontrados"
-    );
+    this.listarPetsComDetalhes(petsReencontrados, "HISTÓRICO DE PETS REENCONTRADOS");
   }
 }
 

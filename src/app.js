@@ -1,23 +1,33 @@
-// src/app.js
-
+// src/app.js (Atualizado para demonstrar o uso da logo configurável)
 import ConsoleUI from "./ui/ConsoleUI.js";
 import PetService from "./services/PetService.js";
 import AuthService from "./services/AuthService.js";
-import popularDadosIniciais from "./seed/initialData.js"; // <--- IMPORTAR AQUI
+import popularDadosIniciais from "./seed/initialData.js";
 
 class PetResgateApp {
   constructor() {
     this.authService = new AuthService();
     this.petService = new PetService();
     this.ui = new ConsoleUI(this.petService, this.authService);
+    
+    // Configuração da logo do app - Exemplo de como alterá-la
+    // Descomente uma das linhas abaixo para testar uma logo diferente
+    // this.ui.renderer.carregarLogoPredefinida("simples");
+    // this.ui.renderer.carregarLogoPredefinida("mini");
+    
+    // Ou defina uma logo personalizada
+    /* 
+    this.ui.renderer.atualizarLogo([
+      "╔═══════════════════╗",
+      "║   PET RESGATE     ║",
+      "║   🐕 🐈 🐩 🐾      ║",
+      "╚═══════════════════╝"
+    ]);
+    */
   }
 
-  // A função de popular dados foi movida para src/seed/initialData.js
-
   iniciar() {
-    // Chamar a função de popular dados, passando os serviços necessários
     popularDadosIniciais(this.authService, this.petService);
-    this.ui.pausar(); // Pausa para ver a mensagem de dados populados
 
     let executando = true;
     while (executando) {
@@ -41,11 +51,15 @@ class PetResgateApp {
         case "6":
           this.ui.processarHistoricoReencontros();
           break;
-        case "7":
+        case "7": // NOVA OPÇÃO: Sobre
+          this.ui.processarSobre();
+          break;
+        case "8": // Logout (agora é 8 se logado)
           if (this.ui.usuarioLogado) {
             this.ui.processarLogout();
           } else {
-            console.log("Opção inválida.");
+            // Se 8 for digitado e não houver usuário logado, é inválido
+            this.ui.renderer.exibirMensagem("Opção inválida.", "warning");
             this.ui.pausar();
           }
           break;
@@ -55,7 +69,7 @@ class PetResgateApp {
           console.log("🐾 Obrigado por usar o PetResgate! Até a próxima! 🐾");
           break;
         default:
-          console.log("Opção inválida. Tente novamente.");
+          this.ui.renderer.exibirMensagem("Opção inválida. Tente novamente.", "warning");
           this.ui.pausar();
       }
     }
