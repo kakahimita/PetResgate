@@ -1,12 +1,19 @@
-class Usuario{
-    constructor(id, nome, email, senha, telefone, documento, data_nascimento, cidade){
-        this.id = id;
+class Usuario {
+    static proximoId = 1;
+
+    constructor(nome, email, senha) {
+        this.id = Usuario.proximoId++;
         this.nome = nome;
-        this.email = email;
-        this.telefone = telefone;
-        this.documento = documento;
-        this.data_nascimento = data_nascimento;
-        this.cidade = cidade;
-        this.senha = senha;
+        this.email = email; // Usado para login
+        this.senha = senha; // Em um app real, isso seria hasheado
+        this.petsRegistrados = []; // IDs dos pets que este usuário registrou como perdidos
     }
+
+    adicionarPetRegistrado(petId) {
+        this.petsRegistrados.push(petId);
+    }
+
+    // Poderíamos adicionar mais métodos conforme necessário
 }
+
+module.exports = Usuario;
