@@ -1,9 +1,11 @@
 # 🛠️ Esté readme ainda está em construção!
 
 # 🐾 PetResgate — Conectando Pets Perdidos aos Seus Lares
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=flat&logo=javascript&logoColor=black)](https://developer.mozilla.org/pt-BR/docs/Web/JavaScript)
-**Descrição:**  
+
+### **Descrição:**  
 PetResgate é uma plataforma solidária para ajudar tutores a reencontrarem seus pets perdidos e para facilitar a adoção de animais que precisam de um novo lar. O sistema oferece cadastro de pets perdidos/encontrados, busca inteligente, contato seguro e uma emocionante galeria de reencontros. 🏠💙
 
 ---
@@ -38,7 +40,7 @@ PetResgate é uma plataforma solidária para ajudar tutores a reencontrarem seus
 
 ### 🎯 Diagrama de Casos de Uso
 
-![Diagrama de Casos de Uso](./imagens/diagrama_casos_uso.png)
+![Diagrama de Casos de Uso](/image/Diagrama_em_branco.png)
 
 ---
 
@@ -86,6 +88,10 @@ npm start
 | Nome | Função |
 |:----:|:------:|
 | Luís | Idealizador & Desenvolvedor |
+| Abner | Idealizador & Desenvolvedor |
+| Laura | Idealizador & Desenvolvedor |
+| Lorenzo | Idealizador & Desenvolvedor |
+| Antonio | Idealizador & Desenvolvedor |
 
 ---
 
