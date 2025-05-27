@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐾 PetResgate - Conectando Pets aos Seus Lares</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <h1><i class="fas fa-paw"></i> PetResgate</h1>
+                <p>Conectando pets aos seus lares</p>
+            </div>
+            <nav class="nav">
+                <button class="nav-btn" data-section="home">
+                    <i class="fas fa-home"></i> Início
+                </button>
+                <button class="nav-btn" data-section="search">
+                    <i class="fas fa-search"></i> Buscar
+                </button>
+                <button class="nav-btn" data-section="register">
+                    <i class="fas fa-plus-circle"></i> Registrar Pet
+                </button>
+                <button class="nav-btn" data-section="found">
+                    <i class="fas fa-heart"></i> Reencontros
+                </button>
+                <button class="nav-btn" data-section="login" id="loginBtn">
+                    <i class="fas fa-user"></i> Login
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+        <!-- Home Section -->
+        <section id="home" class="section active">
+            <div class="container">
+                <div class="hero">
+                    <div class="hero-content">
+                        <h2>Ajude a reunir pets com suas famílias! 🏠💕</h2>
+                        <p>Uma plataforma dedicada a conectar tutores com seus amados companheiros perdidos.</p>
+                        <div class="stats">
+                            <div class="stat-card">
+                                <i class="fas fa-search stat-icon"></i>
+                                <h3 id="stats-perdidos">-</h3>
+                                <p>Pets Perdidos</p>
+                            </div>
+                            <div class="stat-card">
+                                <i class="fas fa-heart stat-icon"></i>
+                                <h3 id="stats-encontrados">-</h3>
+                                <p>Reencontros</p>
+                            </div>
+                            <div class="stat-card">
+                                <i class="fas fa-paw stat-icon"></i>
+                                <h3 id="stats-total">-</h3>
+                                <p>Total Cadastrados</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="hero-image">
+                        <img src="/images/pets/petresgateimage.png" alt="Meu Pet Favorito" class="hero-img">
+                    </div>
+                </div>
+
+                <div class="recent-pets">
+                    <h3><i class="fas fa-clock"></i> Pets Perdidos Recentemente</h3>
+                    <div id="recent-pets-list" class="pets-grid">
+                        <!-- Pets serão carregados aqui -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Search Section -->
+        <section id="search" class="section">
+            <div class="container">
+                <h2><i class="fas fa-search"></i> Buscar Pets Perdidos</h2>
+
+                <div class="search-form">
+                    <div class="form-group">
+                        <label for="search-name">Nome do Pet:</label>
+                        <input type="text" id="search-name" placeholder="Digite o nome ou parte do nome">
+                    </div>
+                    <div class="form-group">
+                        <label for="search-location">Localidade:</label>
+                        <input type="text" id="search-location" placeholder="Digite a localidade">
+                    </div>
+                    <button id="search-btn" class="btn btn-primary">
+                        <i class="fas fa-search"></i> Buscar
+                    </button>
+                    <button id="clear-search" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Limpar
+                    </button>
+                </div>
+
+                <div id="search-results" class="pets-grid">
+                    <!-- Resultados da busca -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Register Pet Section -->
+        <section id="register" class="section">
+            <div class="container">
+                <h2><i class="fas fa-plus-circle"></i> Registrar Pet Perdido</h2>
+
+                <div class="auth-warning" id="register-warning" style="display: none;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Você precisa estar logado para registrar um pet perdido.
+                    <button class="btn btn-small" onclick="showLogin()">Fazer Login</button>
+                </div>
+
+                <form id="register-form" class="register-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="pet-name">Nome do Pet *</label>
+                            <input type="text" id="pet-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="pet-species">Espécie *</label>
+                            <select id="pet-species" required>
+                                <option value="">Selecione...</option>
+                                <option value="Cachorro">Cachorro</option>
+                                <option value="Gato">Gato</option>
+                                <option value="Ave">Ave</option>
+                                <option value="Outro">Outro</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="pet-breed">Raça</label>
+                            <input type="text" id="pet-breed" placeholder="Ex: Labrador, SRD">
+                        </div>
+                        <div class="form-group">
+                            <label for="pet-gender">Gênero</label>
+                            <select id="pet-gender">
+                                <option value="">Selecione...</option>
+                                <option value="Macho">Macho</option>
+                                <option value="Fêmea">Fêmea</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="pet-age">Idade</label>
+                            <input type="text" id="pet-age" placeholder="Ex: 2 anos, 6 meses">
+                        </div>
+                        <div class="form-group">
+                            <label for="pet-color">Cor</label>
+                            <input type="text" id="pet-color" placeholder="Cor predominante">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="pet-location">Local onde foi perdido *</label>
+                            <input type="text" id="pet-location" required placeholder="Ex: Parque da Jaqueira, Recife">
+                        </div>
+                        <div class="form-group">
+                            <label for="pet-date">Data em que foi perdido *</label>
+                            <input type="date" id="pet-date" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="pet-description">Descrição/Observações</label>
+                        <textarea id="pet-description"
+                            placeholder="Descreva características especiais, comportamento, etc."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="pet-photo">Foto (URL)</label>
+                        <input type="url" id="pet-photo" placeholder="Link para uma foto do pet">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Registrar Pet Perdido
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- Found Pets Section -->
+        <section id="found" class="section">
+            <div class="container">
+                <h2><i class="fas fa-heart"></i> Histórico de Reencontros</h2>
+                <p class="section-description">Celebre essas histórias felizes de pets que voltaram para casa! 🎉</p>
+
+                <div id="found-pets-list" class="pets-grid">
+                    <!-- Pets encontrados serão carregados aqui -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Login/Profile Section -->
+        <section id="login" class="section">
+            <div class="container">
+                <div id="login-form-container">
+                    <h2><i class="fas fa-user"></i> Login</h2>
+
+                    <form id="login-form" class="auth-form">
+                        <div class="form-group">
+                            <label for="login-email">Email:</label>
+                            <input type="email" id="login-email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="login-password">Senha:</label>
+                            <input type="password" id="login-password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-sign-in-alt"></i> Entrar
+                        </button>
+                    </form>
+
+                    <div class="auth-divider">
+                        <span>ou</span>
+                    </div>
+
+                    <h3>Novo por aqui?</h3>
+                    <form id="register-user-form" class="auth-form">
+                        <div class="form-group">
+                            <label for="register-name">Nome Completo:</label>
+                            <input type="text" id="register-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="register-email">Email:</label>
+                            <input type="email" id="register-email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="register-password">Senha:</label>
+                            <input type="password" id="register-password" required>
+                        </div>
+                        <button type="submit" class="btn btn-secondary">
+                            <i class="fas fa-user-plus"></i> Cadastrar
+                        </button>
+                    </form>
+                </div>
+
+                <div id="profile-container" style="display: none;">
+                    <h2><i class="fas fa-user-circle"></i> Meu Perfil</h2>
+                    <div class="profile-info">
+                        <p><strong>Nome:</strong> <span id="profile-name"></span></p>
+                        <p><strong>Email:</strong> <span id="profile-email"></span></p>
+                    </div>
+
+                    <h3><i class="fas fa-list"></i> Meus Pets Registrados</h3>
+                    <div id="user-pets" class="pets-grid">
+                        <!-- Pets do usuário serão carregados aqui -->
+                    </div>
+
+                    <button id="logout-btn" class="btn btn-danger">
+                        <i class="fas fa-sign-out-alt"></i> Sair
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Pet Modal -->
+    <div id="pet-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div id="pet-details">
+                <!-- Detalhes do pet serão carregados aqui -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div id="notification" class="notification">
+        <span id="notification-message"></span>
+        <button id="notification-close">&times;</button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

@@ -38,6 +38,7 @@ async function popularDadosIniciais(authService, petService, dbService) {
             localPerdido: "Parque Central, São Paulo",
             dataPerdido: "10/07/2024",
             comentarioTutor: "Muito dócil, fugiu durante passeio.",
+            foto:"/images/pets/amor.jpg",
           },
           user1.id
         );
@@ -55,6 +56,7 @@ async function popularDadosIniciais(authService, petService, dbService) {
               "Telhado da vizinhança, Rua das Flores, 123, Rio de Janeiro",
             dataPerdido: "12/07/2024",
             comentarioTutor: "Assustada, pode estar escondida.",
+            foto: "/images/pets/gatoo.jpg",
           },
           user1.id
         );
@@ -73,6 +75,7 @@ async function popularDadosIniciais(authService, petService, dbService) {
             localPerdido: "Rua das Palmeiras, Belo Horizonte",
             dataPerdido: "05/07/2024",
             comentarioTutor: "Usa coleira vermelha.",
+            foto: "/images/pets/cachorroo.jpg"
           },
           user2.id
         );
