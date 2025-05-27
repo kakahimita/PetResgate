@@ -1,20 +1,37 @@
 {
   "name": "petresgate",
   "version": "1.0.0",
-  "description": "# 🐾 PetResgate — Conectando Pets Perdidos aos Seus Lares",
+  "description": "🐾 PetResgate — Conectando Pets Perdidos aos Seus Lares",
   "main": "src/app.js",
   "type": "module",
   "scripts": {
     "start": "node src/app.js",
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
+    "dev": "node --watch server.js",
+    "server": "node server.js",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "build": "echo 'Build script - adicionar se necessário'"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "pets",
+    "resgate",
+    "animais",
+    "perdidos",
+    "encontrados"
+  ],
+  "author": "Equipe PetResgate",
+  "license": "MIT",
   "dependencies": {
-    "readline-sync": "^1.4.10"
+    "readline-sync": "^1.4.10",
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^5.1.6"
   },
   "devDependencies": {
-    "jest": "^29.7.0"
+    "jest": "^29.7.0",
+    "nodemon": "^3.0.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
