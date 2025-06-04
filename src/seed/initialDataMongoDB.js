@@ -1,11 +1,14 @@
-async function popularDadosIniciais(authService, petService, dbService) {
-  console.log("🌱 Verificando e populando dados iniciais...");
+async function popularDadosIniciaisMongoDB(authService, petService, dbService) {
+  console.log("🌱 Verificando e populando dados iniciais no MongoDB...");
 
   try {
-    const countUsuarios = await dbService.get("SELECT COUNT(*) as count FROM usuarios");
-    if (countUsuarios.count === 0) {
-      console.log("   Tabela 'usuarios' vazia. Inserindo usuários iniciais...");
+    // Verificar se já existem usuários
+    const countUsuarios = await dbService.count('Usuario');
+    
+    if (countUsuarios === 0) {
+      console.log("   Coleção 'usuarios' vazia. Inserindo usuários iniciais...");
 
+      // Cadastrar usuários
       const cadastroUser1 = await authService.cadastrar(
         "Ana Silva",
         "ana@example.com",
@@ -26,6 +29,9 @@ async function popularDadosIniciais(authService, petService, dbService) {
       const user2 = cadastroUser2.success ? cadastroUser2.usuario : null;
       const user3 = cadastroUser3.success ? cadastroUser3.usuario : null;
 
+      console.log("   ✅ Usuários criados:", { user1: user1?.nome, user2: user2?.nome, user3: user3?.nome });
+
+      // Pets para Ana Silva
       if (user1) {
         const pet1Ana = await petService.registrarPetPerdido(
           {
@@ -38,11 +44,10 @@ async function popularDadosIniciais(authService, petService, dbService) {
             localPerdido: "Parque Central, São Paulo",
             dataPerdido: "10/07/2024",
             comentarioTutor: "Muito dócil, fugiu durante passeio.",
-            foto:"/images/pets/amor.jpg",
+            foto: "/images/pets/amor.jpg",
           },
           user1.id
         );
-        user1.adicionarPetRegistrado(pet1Ana.id);
 
         const pet2Ana = await petService.registrarPetPerdido(
           {
@@ -52,17 +57,18 @@ async function popularDadosIniciais(authService, petService, dbService) {
             genero: "Fêmea",
             idade: "1 ano",
             cor: "Creme com pontas escuras",
-            localPerdido:
-              "Telhado da vizinhança, Rua das Flores, 123, Rio de Janeiro",
+            localPerdido: "Telhado da vizinhança, Rua das Flores, 123, Rio de Janeiro",
             dataPerdido: "12/07/2024",
             comentarioTutor: "Assustada, pode estar escondida.",
             foto: "/images/pets/gatoo.jpg",
           },
           user1.id
         );
-        user1.adicionarPetRegistrado(pet2Ana.id);
+
+        console.log("   ✅ Pets da Ana criados:", { pet1: pet1Ana.nome, pet2: pet2Ana.nome });
       }
 
+      // Pets para Bruno Costa
       if (user2) {
         const pet1Bruno = await petService.registrarPetPerdido(
           {
@@ -79,9 +85,11 @@ async function popularDadosIniciais(authService, petService, dbService) {
           },
           user2.id
         );
-        user2.adicionarPetRegistrado(pet1Bruno.id);
+
+        console.log("   ✅ Pet do Bruno criado:", pet1Bruno.nome);
       }
 
+      // Pets para Carlos Lima
       if (user3) {
         const pet1Carlos = await petService.registrarPetPerdido(
           {
@@ -97,16 +105,25 @@ async function popularDadosIniciais(authService, petService, dbService) {
           },
           user3.id
         );
-        user3.adicionarPetRegistrado(pet1Carlos.id);
+
+        // Marcar Fred como encontrado para histórico
         await petService.marcarPetComoEncontrado(pet1Carlos.id);
+        
+        console.log("   ✅ Pet do Carlos criado e marcado como encontrado:", pet1Carlos.nome);
       }
-      console.log("✅ Dados iniciais populados com sucesso.");
+
+      // Verificar estatísticas finais
+      const stats = await petService.obterEstatisticas();
+      console.log("   📊 Estatísticas finais:", stats);
+
+      console.log("✅ Dados iniciais populados com sucesso no MongoDB!");
     } else {
-      console.log("   Banco de dados já possui dados. Pulando a inserção inicial.");
+      console.log(`   MongoDB já possui ${countUsuarios} usuários. Pulando a inserção inicial.`);
     }
   } catch (error) {
-    console.error("❌ Erro ao popular dados iniciais:", error);
+    console.error("❌ Erro ao popular dados iniciais no MongoDB:", error);
+    throw error;
   }
 }
 
-export default popularDadosIniciais;
+export default popularDadosIniciaisMongoDB;

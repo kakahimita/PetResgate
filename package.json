@@ -1,14 +1,19 @@
 {
   "name": "petresgate",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "🐾 PetResgate — Conectando Pets Perdidos aos Seus Lares",
   "main": "src/app.js",
   "type": "module",
   "scripts": {
     "start": "node src/app.js",
+    "start:mongodb": "node src/appMongoDB.js",
     "dev": "node --watch server.js",
+    "dev:mongodb": "node --watch serverMongoDB.js",
     "server": "node server.js",
+    "server:mongodb": "node serverMongoDB.js",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "console": "node src/app.js",
+    "console:mongodb": "node src/appMongoDB.js --mongodb",
     "build": "echo 'Build script - adicionar se necessário'"
   },
   "keywords": [
@@ -16,7 +21,9 @@
     "resgate",
     "animais",
     "perdidos",
-    "encontrados"
+    "encontrados",
+    "mongodb",
+    "nodejs"
   ],
   "author": "Equipe PetResgate",
   "license": "MIT",
@@ -25,7 +32,10 @@
     "express": "^4.18.2",
     "cors": "^2.8.5",
     "sqlite": "^5.1.1",
-    "sqlite3": "^5.1.6"
+    "sqlite3": "^5.1.6",
+    "mongodb": "^6.3.0",
+    "mongoose": "^8.0.3",
+    "dotenv": "^16.3.1"
   },
   "devDependencies": {
     "jest": "^29.7.0",
