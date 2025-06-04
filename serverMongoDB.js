@@ -1,14 +1,17 @@
-// server.js - API REST para Pet Resgate
+// serverMongoDB.js - API REST para Pet Resgate com MongoDB
 import express from 'express';
 import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
 
-// Importar serviços existentes
-import DatabaseService from './src/services/DatabaseService.js';
-import AuthService from './src/services/AuthService.js';
-import PetService from './src/services/PetService.js';
-import popularDadosIniciais from './src/seed/initialData.js';
+// Importar serviços MongoDB
+import MongoDBService from './src/services/MongoDBService.js';
+import AuthServiceMongoDB from './src/services/AuthServiceMongoDB.js';
+import PetServiceMongoDB from './src/services/PetServiceMongoDB.js';
+import popularDadosIniciaisMongoDB from './src/seed/initialDataMongoDB.js';
+
+dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -21,19 +24,24 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Inicializar serviços
-const dbService = new DatabaseService();
-const authService = new AuthService(dbService);
-const petService = new PetService(dbService);
+// Inicializar serviços MongoDB
+const dbService = new MongoDBService();
+const authService = new AuthServiceMongoDB(dbService);
+const petService = new PetServiceMongoDB(dbService);
 
 // Inicializar banco e dados
 async function initializeServices() {
   try {
+    console.log("🔗 Conectando ao MongoDB...");
     await dbService.connect();
-    await popularDadosIniciais(authService, petService, dbService);
-    console.log('✅ Serviços inicializados com sucesso!');
+    
+    console.log("🌱 Populando dados iniciais...");
+    await popularDadosIniciaisMongoDB(authService, petService, dbService);
+    
+    console.log('✅ Serviços MongoDB inicializados com sucesso!');
   } catch (error) {
     console.error('❌ Erro ao inicializar serviços:', error);
+    process.exit(1);
   }
 }
 
@@ -99,7 +107,7 @@ app.post('/api/auth/login', async (req, res) => {
 app.get('/api/auth/user/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const usuario = await authService.getUsuarioById(parseInt(id));
+    const usuario = await authService.getUsuarioById(id);
     
     if (usuario) {
       res.json({
@@ -170,7 +178,7 @@ app.get('/api/pets/search', async (req, res) => {
 app.get('/api/pets/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const pet = await petService.buscarPetPorId(parseInt(id));
+    const pet = await petService.buscarPetPorId(id);
     
     if (pet) {
       res.json({
@@ -236,7 +244,7 @@ app.post('/api/pets', async (req, res) => {
 app.put('/api/pets/:id/encontrado', async (req, res) => {
   try {
     const { id } = req.params;
-    const resultado = await petService.marcarPetComoEncontrado(parseInt(id));
+    const resultado = await petService.marcarPetComoEncontrado(id);
     
     if (resultado.success) {
       res.json(resultado);
@@ -275,17 +283,11 @@ app.get('/api/pets/historico/reencontros', async (req, res) => {
 // GET /api/stats - Estatísticas gerais
 app.get('/api/stats', async (req, res) => {
   try {
-    const todosPets = await petService.listarTodosOsPets();
-    const petsPerdidos = await petService.listarTodosOsPets('PERDIDO');
-    const petsEncontrados = await petService.listarTodosOsPets('ENCONTRADO');
+    const stats = await petService.obterEstatisticas();
     
     res.json({
       success: true,
-      stats: {
-        total: todosPets.length,
-        perdidos: petsPerdidos.length,
-        encontrados: petsEncontrados.length
-      }
+      stats
     });
   } catch (error) {
     console.error('Erro ao obter estatísticas:', error);
@@ -312,14 +314,28 @@ app.use((err, req, res, next) => {
   });
 });
 
+// Middleware para shutdown gracioso
+process.on('SIGINT', async () => {
+  console.log('\n🛑 Recebido sinal de encerramento...');
+  try {
+    await dbService.disconnect();
+    console.log('👋 Servidor encerrado graciosamente.');
+    process.exit(0);
+  } catch (error) {
+    console.error('Erro ao encerrar:', error);
+    process.exit(1);
+  }
+});
+
 // Inicializar servidor
 async function startServer() {
   await initializeServices();
   
   app.listen(PORT, () => {
-    console.log(`🚀 Servidor rodando na porta ${PORT}`);
+    console.log(`🚀 Servidor PetResgate MongoDB rodando na porta ${PORT}`);
     console.log(`🌐 Acesse: http://localhost:${PORT}`);
     console.log(`📋 API: http://localhost:${PORT}/api/pets`);
+    console.log(`🔗 MongoDB: ${process.env.MONGODB_URI ? 'Conectado' : 'Configurar MONGODB_URI'}`);
   });
 }
 

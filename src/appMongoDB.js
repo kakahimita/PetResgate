@@ -1,21 +1,27 @@
 import ConsoleUI from "./ui/ConsoleUI.js";
-import PetService from "./services/PetService.js";
-import AuthService from "./services/AuthService.js";
-import DatabaseService from "./services/DatabaseService.js";
-import popularDadosIniciais from "./seed/initialData.js";
+import PetServiceMongoDB from "./services/PetServiceMongoDB.js";
+import AuthServiceMongoDB from "./services/AuthServiceMongoDB.js";
+import MongoDBService from "./services/MongoDBService.js";
+import popularDadosIniciaisMongoDB from "./seed/initialDataMongoDB.js";
 
-class PetResgateApp {
+class PetResgateAppMongoDB {
   constructor() {
-    this.dbService = new DatabaseService();
-    this.authService = new AuthService(this.dbService);
-    this.petService = new PetService(this.dbService);
+    this.dbService = new MongoDBService();
+    this.authService = new AuthServiceMongoDB(this.dbService);
+    this.petService = new PetServiceMongoDB(this.dbService);
     this.ui = new ConsoleUI(this.petService, this.authService);
   }
 
   async iniciar() {
     try {
+      console.log("🚀 Iniciando PetResgate com MongoDB...");
+
       await this.dbService.connect();
-      await popularDadosIniciais(this.authService, this.petService, this.dbService);
+      await popularDadosIniciaisMongoDB(
+        this.authService,
+        this.petService,
+        this.dbService
+      );
 
       let executando = true;
       while (executando) {
@@ -56,12 +62,15 @@ class PetResgateApp {
             console.log("🐾 Obrigado por usar o PetResgate! Até a próxima! 🐾");
             break;
           default:
-            this.ui.renderer.exibirMensagem("Opção inválida. Tente novamente.", "warning");
+            this.ui.renderer.exibirMensagem(
+              "Opção inválida. Tente novamente.",
+              "warning"
+            );
             this.ui.pausar();
         }
       }
     } catch (error) {
-      console.error("Erro ao iniciar o aplicativo:", error);
+      console.error("❌ Erro ao iniciar o aplicativo:", error);
     } finally {
       if (this.dbService) {
         await this.dbService.disconnect();
@@ -70,5 +79,10 @@ class PetResgateApp {
   }
 }
 
-const app = new PetResgateApp();
-app.iniciar();
+// Para testar o app com MongoDB
+if (process.argv.includes("--mongodb")) {
+  const app = new PetResgateAppMongoDB();
+  app.iniciar();
+}
+
+export default PetResgateAppMongoDB;
