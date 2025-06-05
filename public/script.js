@@ -3,6 +3,10 @@ let currentUser = null;
 let allPets = [];
 let currentSection = 'home';
 
+// === VARIÁVEIS PARA SEÇÃO DE CUIDADOS ===
+let slideIndex = 1;
+let slideInterval;
+
 // === API BASE URL ===
 const API_BASE = '/api';
 
@@ -11,6 +15,11 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
     setupEventListeners();
     loadInitialData();
+    
+    // Inicializar funcionalidades da seção de cuidados automaticamente
+    setTimeout(() => {
+        initializeHomeFeatures();
+    }, 500);
 });
 
 // === FUNÇÕES DE INICIALIZAÇÃO ===
@@ -40,26 +49,49 @@ function setupEventListeners() {
     });
     
     // Formulário de login
-    document.getElementById('login-form').addEventListener('submit', handleLogin);
+    const loginForm = document.getElementById('login-form');
+    if (loginForm) {
+        loginForm.addEventListener('submit', handleLogin);
+    }
     
     // Formulário de cadastro de usuário
-    document.getElementById('register-user-form').addEventListener('submit', handleUserRegistration);
+    const registerForm = document.getElementById('register-user-form');
+    if (registerForm) {
+        registerForm.addEventListener('submit', handleUserRegistration);
+    }
     
     // Formulário de registro de pet
-    document.getElementById('register-form').addEventListener('submit', handlePetRegistration);
+    const petForm = document.getElementById('register-form');
+    if (petForm) {
+        petForm.addEventListener('submit', handlePetRegistration);
+    }
     
     // Busca de pets
-    document.getElementById('search-btn').addEventListener('click', handleSearch);
-    document.getElementById('clear-search').addEventListener('click', clearSearch);
+    const searchBtn = document.getElementById('search-btn');
+    const clearBtn = document.getElementById('clear-search');
+    if (searchBtn) searchBtn.addEventListener('click', handleSearch);
+    if (clearBtn) clearBtn.addEventListener('click', clearSearch);
     
     // Logout
-    document.getElementById('logout-btn').addEventListener('click', handleLogout);
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', handleLogout);
+    }
     
     // Modal
     setupModalEvents();
     
     // Notificações
-    document.getElementById('notification-close').addEventListener('click', hideNotification);
+    const notificationClose = document.getElementById('notification-close');
+    if (notificationClose) {
+        notificationClose.addEventListener('click', hideNotification);
+    }
+    
+    // Formulário de contato da seção de cuidados
+    const contactForm = document.getElementById('contactForm');
+    if (contactForm) {
+        contactForm.addEventListener('submit', handleContactFormSubmit);
+    }
 }
 
 async function loadInitialData() {
@@ -107,6 +139,12 @@ function showSection(sectionName) {
 
 async function loadSectionData(sectionName) {
     switch (sectionName) {
+        case 'home':
+            // Reinicializar funcionalidades da página inicial se necessário
+            setTimeout(() => {
+                initializeHomeFeatures();
+            }, 100);
+            break;
         case 'search':
             await loadAllPetsForSearch();
             break;
@@ -170,6 +208,8 @@ async function loadStats() {
 async function loadRecentPets() {
     try {
         const container = document.getElementById('recent-pets-list');
+        if (!container) return;
+        
         container.innerHTML = '<div class="loading"><div class="spinner"></div>Carregando pets...</div>';
         
         const response = await apiRequest('/pets?status=PERDIDO');
@@ -189,13 +229,16 @@ async function loadRecentPets() {
         container.innerHTML = pets.map(pet => createPetCard(pet)).join('');
     } catch (error) {
         console.error('Erro ao carregar pets recentes:', error);
-        document.getElementById('recent-pets-list').innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-exclamation-triangle"></i>
-                <h3>Erro ao carregar pets</h3>
-                <p>Tente novamente mais tarde</p>
-            </div>
-        `;
+        const container = document.getElementById('recent-pets-list');
+        if (container) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h3>Erro ao carregar pets</h3>
+                    <p>Tente novamente mais tarde</p>
+                </div>
+            `;
+        }
     }
 }
 
@@ -203,6 +246,8 @@ async function loadRecentPets() {
 async function loadFoundPets() {
     try {
         const container = document.getElementById('found-pets-list');
+        if (!container) return;
+        
         container.innerHTML = '<div class="loading"><div class="spinner"></div>Carregando reencontros...</div>';
         
         const response = await apiRequest('/pets/historico/reencontros');
@@ -222,13 +267,16 @@ async function loadFoundPets() {
         container.innerHTML = pets.map(pet => createPetCard(pet, true)).join('');
     } catch (error) {
         console.error('Erro ao carregar pets encontrados:', error);
-        document.getElementById('found-pets-list').innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-exclamation-triangle"></i>
-                <h3>Erro ao carregar reencontros</h3>
-                <p>Tente novamente mais tarde</p>
-            </div>
-        `;
+        const container = document.getElementById('found-pets-list');
+        if (container) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h3>Erro ao carregar reencontros</h3>
+                    <p>Tente novamente mais tarde</p>
+                </div>
+            `;
+        }
     }
 }
 
@@ -274,6 +322,7 @@ function clearSearch() {
 
 function displaySearchResults(pets) {
     const container = document.getElementById('search-results');
+    if (!container) return;
     
     if (pets.length === 0) {
         container.innerHTML = `
@@ -362,6 +411,8 @@ function updateUIForLoggedUser() {
     const loginContainer = document.getElementById('login-form-container');
     const profileContainer = document.getElementById('profile-container');
     
+    if (!loginBtn || !loginContainer || !profileContainer) return;
+    
     if (currentUser) {
         loginBtn.innerHTML = '<i class="fas fa-user-circle"></i> Perfil';
         loginContainer.style.display = 'none';
@@ -386,6 +437,8 @@ function updateLoginSection() {
 function checkAuthForRegistration() {
     const warning = document.getElementById('register-warning');
     const form = document.getElementById('register-form');
+    
+    if (!warning || !form) return;
     
     if (!currentUser) {
         warning.style.display = 'flex';
@@ -442,6 +495,8 @@ async function loadUserPets() {
     
     try {
         const container = document.getElementById('user-pets');
+        if (!container) return;
+        
         container.innerHTML = '<div class="loading"><div class="spinner"></div>Carregando seus pets...</div>';
         
         const response = await apiRequest('/pets');
@@ -461,7 +516,10 @@ async function loadUserPets() {
         container.innerHTML = userPets.map(pet => createPetCard(pet, false, true)).join('');
     } catch (error) {
         console.error('Erro ao carregar pets do usuário:', error);
-        document.getElementById('user-pets').innerHTML = '<p>Erro ao carregar pets</p>';
+        const container = document.getElementById('user-pets');
+        if (container) {
+            container.innerHTML = '<p>Erro ao carregar pets</p>';
+        }
     }
 }
 
@@ -506,11 +564,15 @@ function createPetCard(pet, isFound = false, showActions = false) {
 // === MODAL DO PET ===
 function setupModalEvents() {
     const modal = document.getElementById('pet-modal');
+    if (!modal) return;
+    
     const closeBtn = modal.querySelector('.close');
     
-    closeBtn.addEventListener('click', () => {
-        modal.style.display = 'none';
-    });
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+    }
     
     window.addEventListener('click', (e) => {
         if (e.target === modal) {
@@ -526,6 +588,8 @@ async function showPetModal(petId) {
         
         const modal = document.getElementById('pet-modal');
         const detailsContainer = document.getElementById('pet-details');
+        
+        if (!modal || !detailsContainer) return;
         
         const imageUrl = pet.foto && pet.foto !== 'N/A (Console não suporta imagens)' 
             ? pet.foto 
@@ -601,6 +665,207 @@ async function markAsFound(petId) {
     }
 }
 
+// ===== FUNCIONALIDADES DA PÁGINA INICIAL =====
+
+// === SLIDESHOW ===
+function initializeSlideshow() {
+    const slides = document.querySelectorAll('.slide');
+    const dots = document.querySelectorAll('.slide-dot');
+    
+    if (slides.length === 0 || dots.length === 0) return;
+    
+    showSlide(slideIndex);
+    
+    // Auto slideshow
+    if (slideInterval) clearInterval(slideInterval);
+    slideInterval = setInterval(() => {
+        slideIndex++;
+        showSlide(slideIndex);
+    }, 4000);
+}
+
+function currentSlide(n) {
+    if (slideInterval) clearInterval(slideInterval);
+    showSlide(slideIndex = n);
+    
+    // Reinicia o auto slideshow após 10 segundos
+    setTimeout(() => {
+        slideInterval = setInterval(() => {
+            slideIndex++;
+            showSlide(slideIndex);
+        }, 4000);
+    }, 10000);
+}
+
+function showSlide(n) {
+    const slides = document.querySelectorAll('.slide');
+    const dots = document.querySelectorAll('.slide-dot');
+    
+    if (!slides.length || !dots.length) return;
+    
+    if (n > slides.length) { slideIndex = 1; }
+    if (n < 1) { slideIndex = slides.length; }
+    
+    slides.forEach(slide => slide.classList.remove('active'));
+    dots.forEach(dot => dot.classList.remove('active'));
+    
+    if (slides[slideIndex - 1] && dots[slideIndex - 1]) {
+        slides[slideIndex - 1].classList.add('active');
+        dots[slideIndex - 1].classList.add('active');
+    }
+}
+
+// === FORMULÁRIO DE CONTATO ===
+function handleContactFormSubmit(e) {
+    e.preventDefault();
+    
+    // Simular envio
+    const submitBtn = document.querySelector('.submit-btn');
+    if (!submitBtn) return;
+    
+    const originalText = submitBtn.innerHTML;
+    
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+    submitBtn.disabled = true;
+    
+    setTimeout(() => {
+        showNotification('Mensagem enviada com sucesso! Entraremos em contato em breve.', 'success');
+        e.target.reset();
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    }, 2000);
+}
+
+// === INTERSECTION OBSERVER PARA ANIMAÇÕES ===
+function initializeAnimations() {
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('fade-in');
+            }
+        });
+    }, observerOptions);
+
+    // Observar elementos para animação
+    document.querySelectorAll('.tip-card, .product-card, .sponsor-logo').forEach(el => {
+        observer.observe(el);
+    });
+}
+
+// === EFEITO DE HOVER NAS IMAGENS DAS DICAS ===
+function initializeTipCardEffects() {
+    document.querySelectorAll('.tip-card').forEach(card => {
+        card.addEventListener('mouseenter', () => {
+            const images = card.querySelectorAll('.tip-img');
+            images.forEach((img, index) => {
+                setTimeout(() => {
+                    img.style.transform = 'scale(1.1) rotate(2deg)';
+                }, index * 100);
+            });
+        });
+
+        card.addEventListener('mouseleave', () => {
+            const images = card.querySelectorAll('.tip-img');
+            images.forEach(img => {
+                img.style.transform = 'scale(1) rotate(0deg)';
+            });
+        });
+    });
+}
+
+// === PRODUTOS - EFEITOS INTERATIVOS ===
+function initializeProductEffects() {
+    document.querySelectorAll('.product-store').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const storeName = e.target.textContent;
+            showNotification(`Redirecionando para ${storeName}...`, 'info');
+            
+            // Simular redirecionamento
+            setTimeout(() => {
+                showNotification('Em uma aplicação real, isso abriria a loja!', 'info');
+            }, 1500);
+        });
+    });
+}
+
+// === PATROCINADORES - EFEITOS INTERATIVOS ===
+function initializeSponsorEffects() {
+    document.querySelectorAll('.sponsor-logo').forEach(logo => {
+        logo.addEventListener('click', () => {
+            const sponsorName = logo.textContent.trim();
+            showNotification(`Visitando ${sponsorName}...`, 'info');
+            
+            // Simular visita ao patrocinador
+            setTimeout(() => {
+                showNotification('Em uma aplicação real, isso abriria o site do parceiro!', 'info');
+            }, 1500);
+        });
+    });
+}
+
+// === LINKS SOCIAIS - INTERATIVIDADE ===
+function initializeSocialEffects() {
+    document.querySelectorAll('.social-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const platform = btn.classList[1]; // facebook, instagram, etc.
+            showNotification(`Abrindo ${platform.charAt(0).toUpperCase() + platform.slice(1)}...`, 'info');
+        });
+    });
+}
+
+// === MÉTODOS DE CONTATO - INTERATIVIDADE ===
+function initializeContactMethodEffects() {
+    document.querySelectorAll('.contact-method').forEach(method => {
+        method.addEventListener('click', (e) => {
+            const href = method.getAttribute('href');
+            
+            if (href && href.startsWith('tel:')) {
+                e.preventDefault();
+                showNotification('Número copiado! Use seu telefone para ligar.', 'success');
+                
+                // Tentar copiar número para clipboard
+                const phoneNumber = href.replace('tel:', '');
+                if (navigator.clipboard) {
+                    navigator.clipboard.writeText(phoneNumber);
+                }
+            } else if (href && href.startsWith('mailto:')) {
+                showNotification('Abrindo seu cliente de email...', 'info');
+            } else if (href && href.includes('wa.me')) {
+                showNotification('Abrindo WhatsApp...', 'info');
+            }
+        });
+    });
+}
+
+// === INICIALIZAÇÃO DE TODAS AS FUNCIONALIDADES DA PÁGINA INICIAL ===
+function initializeHomeFeatures() {
+    // Aguardar um pouco para garantir que o DOM esteja pronto
+    setTimeout(() => {
+        initializeSlideshow();
+        initializeAnimations();
+        initializeTipCardEffects();
+        initializeProductEffects();
+        initializeSponsorEffects();
+        initializeSocialEffects();
+        initializeContactMethodEffects();
+    }, 100);
+}
+
+// === SCROLL TO TOP ===
+function scrollToTop() {
+    window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+    });
+}
+
 // === UTILITÁRIOS ===
 function formatDateForAPI(dateString) {
     if (!dateString) return '';
@@ -624,6 +889,8 @@ function showNotification(message, type = 'info') {
     const notification = document.getElementById('notification');
     const messageEl = document.getElementById('notification-message');
     
+    if (!notification || !messageEl) return;
+    
     messageEl.textContent = message;
     notification.className = `notification ${type}`;
     notification.style.display = 'flex';
@@ -635,10 +902,15 @@ function showNotification(message, type = 'info') {
 }
 
 function hideNotification() {
-    document.getElementById('notification').style.display = 'none';
+    const notification = document.getElementById('notification');
+    if (notification) {
+        notification.style.display = 'none';
+    }
 }
 
 // === EXPOSURE PARA FUNÇÕES GLOBAIS ===
 window.showPetModal = showPetModal;
 window.markAsFound = markAsFound;
 window.showLogin = showLogin;
+window.currentSlide = currentSlide;
+window.scrollToTop = scrollToTop;

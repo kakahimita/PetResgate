@@ -39,13 +39,14 @@
 
     <!-- Main Content -->
     <main class="main">
-        <!-- Home Section -->
+        <!-- ===== PÁGINA INICIAL INTEGRADA ===== -->
         <section id="home" class="section active">
             <div class="container">
+                <!-- Hero Principal do PetResgate -->
                 <div class="hero">
                     <div class="hero-content">
                         <h2>Ajude a reunir pets com suas famílias! 🏠💕</h2>
-                        <p>Uma plataforma dedicada a conectar tutores com seus amados companheiros perdidos.</p>
+                        <p>Uma plataforma dedicada a conectar tutores com seus amados companheiros perdidos e promover o bem-estar animal.</p>
                         <div class="stats">
                             <div class="stat-card">
                                 <i class="fas fa-search stat-icon"></i>
@@ -69,16 +70,265 @@
                     </div>
                 </div>
 
+                <!-- Pets Perdidos Recentemente -->
                 <div class="recent-pets">
                     <h3><i class="fas fa-clock"></i> Pets Perdidos Recentemente</h3>
                     <div id="recent-pets-list" class="pets-grid">
                         <!-- Pets serão carregados aqui -->
                     </div>
                 </div>
+
+                <!-- Slideshow de Momentos Felizes -->
+                <div class="happiness-section">
+                    <h3><i class="fas fa-smile"></i> Momentos de Alegria com Pets</h3>
+                    <div class="pet-slideshow">
+                        <div class="slide active">
+                            <img src="https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=1200&h=400&fit=crop" alt="Cachorro feliz">
+                            <div class="slide-content">
+                                <h3>Momentos de Alegria</h3>
+                                <p>Cada dia é uma nova aventura com seu melhor amigo</p>
+                            </div>
+                        </div>
+                        <div class="slide">
+                            <img src="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=1200&h=400&fit=crop" alt="Gato relaxando">
+                            <div class="slide-content">
+                                <h3>Tranquilidade e Conforto</h3>
+                                <p>Um ambiente acolhedor faz toda a diferença</p>
+                            </div>
+                        </div>
+                        <div class="slide">
+                            <img src="https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=1200&h=400&fit=crop" alt="Pet saudável">
+                            <div class="slide-content">
+                                <h3>Saúde em Primeiro Lugar</h3>
+                                <p>Cuidados preventivos garantem uma vida longa e saudável</p>
+                            </div>
+                        </div>
+                        <div class="slideshow-controls">
+                            <span class="slide-dot active" onclick="currentSlide(1)"></span>
+                            <span class="slide-dot" onclick="currentSlide(2)"></span>
+                            <span class="slide-dot" onclick="currentSlide(3)"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dicas de Cuidado -->
+                <section class="care-tips">
+                    <h2><i class="fas fa-lightbulb"></i> Dicas Essenciais de Cuidado</h2>
+                    <div class="tips-grid">
+                        <div class="tip-card">
+                            <i class="fas fa-shower tip-icon"></i>
+                            <h3>Como dar banho no seu pet</h3>
+                            <p class="tip-description">Aprenda as técnicas corretas para um banho seguro e relaxante</p>
+                            <div class="tip-images">
+                                <img src="https://images.unsplash.com/photo-1608848461950-0fe51dfc41cb?w=200&h=80&fit=crop" alt="Banho 1" class="tip-img">
+                                <img src="https://images.unsplash.com/photo-1615751072497-5f5169febe17?w=200&h=80&fit=crop" alt="Banho 2" class="tip-img">
+                            </div>
+                        </div>
+
+                        <div class="tip-card">
+                            <i class="fas fa-cut tip-icon"></i>
+                            <h3>Escovação ideal</h3>
+                            <p class="tip-description">Mantenha o pelo do seu pet sempre saudável e brilhante</p>
+                            <div class="tip-images">
+                                <img src="https://images.unsplash.com/photo-1594149077919-bd0e71ca3c25?w=200&h=80&fit=crop" alt="Escovação 1" class="tip-img">
+                                <img src="https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=200&h=80&fit=crop" alt="Escovação 2" class="tip-img">
+                            </div>
+                        </div>
+
+                        <div class="tip-card">
+                            <i class="fas fa-utensils tip-icon"></i>
+                            <h3>Alimentação saudável</h3>
+                            <p class="tip-description">Nutrição balanceada para todas as fases da vida do seu pet</p>
+                            <div class="tip-images">
+                                <img src="https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=200&h=80&fit=crop" alt="Alimentação 1" class="tip-img">
+                                <img src="https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=200&h=80&fit=crop" alt="Alimentação 2" class="tip-img">
+                            </div>
+                        </div>
+
+                        <div class="tip-card">
+                            <i class="fas fa-heartbeat tip-icon"></i>
+                            <h3>Exercícios e brincadeiras</h3>
+                            <p class="tip-description">Atividades físicas essenciais para o bem-estar mental e físico</p>
+                            <div class="tip-images">
+                                <img src="https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=200&h=80&fit=crop" alt="Exercício 1" class="tip-img">
+                                <img src="https://images.unsplash.com/photo-1605568427561-40dd23c2acea?w=200&h=80&fit=crop" alt="Exercício 2" class="tip-img">
+                            </div>
+                        </div>
+
+                        <div class="tip-card">
+                            <i class="fas fa-stethoscope tip-icon"></i>
+                            <h3>Cuidados veterinários</h3>
+                            <p class="tip-description">Check-ups regulares e sinais de alerta importantes</p>
+                            <div class="tip-images">
+                                <img src="https://images.unsplash.com/photo-1666214280391-8ff5e3c5c73c?w=200&h=80&fit=crop" alt="Veterinário 1" class="tip-img">
+                                <img src="https://images.unsplash.com/photo-1588943211346-0908a1fb0b01?w=200&h=80&fit=crop" alt="Veterinário 2" class="tip-img">
+                            </div>
+                        </div>
+
+                        <div class="tip-card">
+                            <i class="fas fa-tooth tip-icon"></i>
+                            <h3>Higiene dental</h3>
+                            <p class="tip-description">Mantenha os dentes do seu pet sempre limpos e saudáveis</p>
+                            <div class="tip-images">
+                                <img src="https://images.unsplash.com/photo-1601758124510-52d02ddb7cbd?w=200&h=80&fit=crop" alt="Dental 1" class="tip-img">
+                                <img src="https://images.unsplash.com/photo-1598133894008-61f7fdb8cc3a?w=200&h=80&fit=crop" alt="Dental 2" class="tip-img">
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Produtos Recomendados -->
+                <section class="products-section">
+                    <h2><i class="fas fa-shopping-bag"></i> Produtos Recomendados</h2>
+                    <div class="products-grid">
+                        <div class="product-card">
+                            <div class="product-image">
+                                <i class="fas fa-spray-can"></i>
+                            </div>
+                            <h3 class="product-name">Shampoo Premium Care</h3>
+                            <p class="product-description">Fórmula suave com ingredientes naturais para todos os tipos de pelo</p>
+                            <a href="#" class="product-store">PetzLife</a>
+                        </div>
+
+                        <div class="product-card">
+                            <div class="product-image">
+                                <i class="fas fa-cut"></i>
+                            </div>
+                            <h3 class="product-name">Escova Profissional</h3>
+                            <p class="product-description">Remove pelos mortos e massageia a pele delicadamente</p>
+                            <a href="#" class="product-store">BanhoBom</a>
+                        </div>
+
+                        <div class="product-card">
+                            <div class="product-image">
+                                <i class="fas fa-bone"></i>
+                            </div>
+                            <h3 class="product-name">Ração Super Premium</h3>
+                            <p class="product-description">Nutrição completa com vitaminas e minerais essenciais</p>
+                            <a href="#" class="product-store">PatinhaShop</a>
+                        </div>
+
+                        <div class="product-card">
+                            <div class="product-image">
+                                <i class="fas fa-tooth"></i>
+                            </div>
+                            <h3 class="product-name">Kit Higiene Dental</h3>
+                            <p class="product-description">Escova e pasta dental especial para pets</p>
+                            <a href="#" class="product-store">PetzLife</a>
+                        </div>
+
+                        <div class="product-card">
+                            <div class="product-image">
+                                <i class="fas fa-tint"></i>
+                            </div>
+                            <h3 class="product-name">Condicionador Natural</h3>
+                            <p class="product-description">Deixa o pelo sedoso e com brilho natural</p>
+                            <a href="#" class="product-store">BanhoBom</a>
+                        </div>
+
+                        <div class="product-card">
+                            <div class="product-image">
+                                <i class="fas fa-heart"></i>
+                            </div>
+                            <h3 class="product-name">Suplemento Vitamínico</h3>
+                            <p class="product-description">Fortalece o sistema imunológico e melhora a vitalidade</p>
+                            <a href="#" class="product-store">PatinhaShop</a>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Parceiros e Patrocinadores -->
+                <section class="sponsors-section">
+                    <h2><i class="fas fa-handshake"></i> Nossos Parceiros</h2>
+                    <div class="sponsors-grid">
+                        <div class="sponsor-logo">
+                            <i class="fas fa-paw"></i> PetClinic+
+                        </div>
+                        <div class="sponsor-logo">
+                            <i class="fas fa-heart"></i> VetCare Pro
+                        </div>
+                        <div class="sponsor-logo">
+                            <i class="fas fa-leaf"></i> Natural Pet
+                        </div>
+                        <div class="sponsor-logo">
+                            <i class="fas fa-shield-alt"></i> Pet Insurance
+                        </div>
+                        <div class="sponsor-logo">
+                            <i class="fas fa-home"></i> Happy Homes
+                        </div>
+                        <div class="sponsor-logo">
+                            <i class="fas fa-star"></i> Premium Pets
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Contato -->
+                <section class="contact-section">
+                    <h2><i class="fas fa-envelope-heart"></i> Entre em Contato</h2>
+                    <div class="contact-content">
+                        <div class="contact-form">
+                            <form id="contactForm">
+                                <div class="form-group">
+                                    <label for="care-name">Nome</label>
+                                    <input type="text" id="care-name" name="name" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="care-email">E-mail</label>
+                                    <input type="email" id="care-email" name="email" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="care-subject">Assunto</label>
+                                    <input type="text" id="care-subject" name="subject" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="care-message">Mensagem</label>
+                                    <textarea id="care-message" name="message" required></textarea>
+                                </div>
+                                <button type="submit" class="submit-btn">
+                                    <i class="fas fa-paper-plane"></i>
+                                    Enviar Mensagem
+                                </button>
+                            </form>
+                        </div>
+
+                        <div class="contact-info">
+                            <div class="contact-methods">
+                                <a href="https://wa.me/5581999999999" class="contact-method">
+                                    <i class="fab fa-whatsapp"></i>
+                                    <span>WhatsApp: (81) 99999-9999</span>
+                                </a>
+                                <a href="mailto:contato@petresgate.com" class="contact-method">
+                                    <i class="fas fa-envelope"></i>
+                                    <span>contato@petresgate.com</span>
+                                </a>
+                                <a href="tel:+5581999999999" class="contact-method">
+                                    <i class="fas fa-phone"></i>
+                                    <span>(81) 99999-9999</span>
+                                </a>
+                            </div>
+
+                            <div class="social-media">
+                                <a href="#" class="social-btn facebook">
+                                    <i class="fab fa-facebook-f"></i>
+                                </a>
+                                <a href="#" class="social-btn instagram">
+                                    <i class="fab fa-instagram"></i>
+                                </a>
+                                <a href="#" class="social-btn twitter">
+                                    <i class="fab fa-twitter"></i>
+                                </a>
+                                <a href="#" class="social-btn youtube">
+                                    <i class="fab fa-youtube"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </section>
             </div>
         </section>
 
-        <!-- Search Section -->
+        <!-- ===== SEÇÕES ORIGINAIS MANTIDAS ===== -->
+        <!-- Buscar Pets -->
         <section id="search" class="section">
             <div class="container">
                 <h2><i class="fas fa-search"></i> Buscar Pets Perdidos</h2>
@@ -106,7 +356,7 @@
             </div>
         </section>
 
-        <!-- Register Pet Section -->
+        <!-- Registrar Pet -->
         <section id="register" class="section">
             <div class="container">
                 <h2><i class="fas fa-plus-circle"></i> Registrar Pet Perdido</h2>
@@ -190,7 +440,7 @@
             </div>
         </section>
 
-        <!-- Found Pets Section -->
+        <!-- Reencontros -->
         <section id="found" class="section">
             <div class="container">
                 <h2><i class="fas fa-heart"></i> Histórico de Reencontros</h2>
@@ -202,7 +452,7 @@
             </div>
         </section>
 
-        <!-- Login/Profile Section -->
+        <!-- Login/Perfil -->
         <section id="login" class="section">
             <div class="container">
                 <div id="login-form-container">
@@ -280,6 +530,11 @@
     <div id="notification" class="notification">
         <span id="notification-message"></span>
         <button id="notification-close">&times;</button>
+    </div>
+
+    <!-- Floating Pet Icon -->
+    <div class="floating-pet" onclick="scrollToTop()">
+        <i class="fas fa-arrow-up"></i>
     </div>
 
     <script src="script.js"></script>
