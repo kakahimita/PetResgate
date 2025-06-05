@@ -24,20 +24,6 @@ PetResgate é uma plataforma solidária para ajudar tutores a reencontrarem seus
 
 ---
 
-## 📸 Imagens do Projeto
-
-### 1. Tela de Cadastro de Pet Perdido
-
-![Cadastro de Pet](./imagens/cadastro_pet.png)
-
-### 2. Tela de Pets Encontrados
-
-![Pets Encontrados](./imagens/pets_encontrados.png)
-
----
-
-## 🔍 Casos de Uso
-
 ### 🎯 Diagrama de Casos de Uso
 
 ![Diagrama de Casos de Uso](/image/Diagrama_em_branco.png)
