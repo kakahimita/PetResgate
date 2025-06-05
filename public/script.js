@@ -15,11 +15,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // === FUNÇÕES DE INICIALIZAÇÃO ===
 function initializeApp() {
-    // Verificar se há usuário logado no localStorage
-    const savedUser = localStorage.getItem('petresgate_user');
-    if (savedUser) {
-        currentUser = JSON.parse(savedUser);
-        updateUIForLoggedUser();
+    // Verificar se há usuário logado (usando sessionStorage ao invés de localStorage)
+    try {
+        const savedUser = sessionStorage.getItem('petresgate_user');
+        if (savedUser) {
+            currentUser = JSON.parse(savedUser);
+            updateUIForLoggedUser();
+        }
+    } catch (error) {
+        console.log('Nenhum usuário salvo encontrado');
     }
     
     // Mostrar seção inicial
@@ -67,7 +71,7 @@ async function loadInitialData() {
         ]);
     } catch (error) {
         console.error('Erro ao carregar dados iniciais:', error);
-        showNotification('Erro ao carregar dados iniciais', 'error');
+        showNotification('Erro ao carregar dados iniciais. Verifique sua conexão.', 'error');
     }
 }
 
@@ -299,7 +303,13 @@ async function handleLogin(e) {
         });
         
         currentUser = response.usuario;
-        localStorage.setItem('petresgate_user', JSON.stringify(currentUser));
+        
+        // Usar sessionStorage ao invés de localStorage
+        try {
+            sessionStorage.setItem('petresgate_user', JSON.stringify(currentUser));
+        } catch (error) {
+            console.log('Erro ao salvar usuário na sessão');
+        }
         
         updateUIForLoggedUser();
         showNotification('Login realizado com sucesso!', 'success');
@@ -335,7 +345,13 @@ async function handleUserRegistration(e) {
 
 function handleLogout() {
     currentUser = null;
-    localStorage.removeItem('petresgate_user');
+    
+    try {
+        sessionStorage.removeItem('petresgate_user');
+    } catch (error) {
+        console.log('Erro ao remover usuário da sessão');
+    }
+    
     updateUIForLoggedUser();
     showNotification('Logout realizado com sucesso!', 'success');
     showSection('home');
