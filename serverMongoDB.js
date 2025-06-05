@@ -29,19 +29,100 @@ const dbService = new MongoDBService();
 const authService = new AuthServiceMongoDB(dbService);
 const petService = new PetServiceMongoDB(dbService);
 
+app.get('/api/debug', (req, res) => {
+  res.json({
+    mongodb_uri_exists: !!process.env.MONGODB_URI,
+    mongodb_uri_length: process.env.MONGODB_URI?.length || 0,
+    mongodb_uri_preview: process.env.MONGODB_URI?.substring(0, 30) + '...',
+    node_env: process.env.NODE_ENV,
+    vercel_region: process.env.VERCEL_REGION || 'local',
+    timestamp: new Date().toISOString(),
+    status: 'API funcionando'
+  });
+});
+
+// Rota de teste de conexão MongoDB
+app.get('/api/test-mongodb', async (req, res) => {
+  try {
+    console.log('🧪 Testando conexão MongoDB...');
+    
+    if (!process.env.MONGODB_URI) {
+      return res.status(500).json({
+        success: false,
+        error: 'MONGODB_URI não encontrada',
+        details: 'Variável de ambiente não configurada'
+      });
+    }
+
+    // Tentar conectar
+    const mongoose = await import('mongoose');
+    
+    console.log('🔗 Tentando conectar...');
+    await mongoose.default.connect(process.env.MONGODB_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      serverSelectionTimeoutMS: 5000, // 5 segundos timeout
+      connectTimeoutMS: 5000
+    });
+
+    console.log('✅ MongoDB conectado com sucesso!');
+    
+    // Desconectar para não deixar conexões abertas
+    await mongoose.default.disconnect();
+    
+    res.json({
+      success: true,
+      message: 'MongoDB conectado com sucesso!',
+      mongodb_uri_preview: process.env.MONGODB_URI.substring(0, 30) + '...',
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('❌ Erro ao conectar MongoDB:', error);
+    
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      details: {
+        name: error.name,
+        code: error.code,
+        mongodb_uri_exists: !!process.env.MONGODB_URI,
+        mongodb_uri_length: process.env.MONGODB_URI?.length || 0
+      },
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 // Inicializar banco e dados
 async function initializeServices() {
   try {
+    console.log("🚀 Iniciando PetResgate com MongoDB...");
+    console.log("🔍 MONGODB_URI existe:", !!process.env.MONGODB_URI);
+    console.log("🔍 MONGODB_URI length:", process.env.MONGODB_URI?.length || 0);
+    
+    if (!process.env.MONGODB_URI) {
+      throw new Error('❌ MONGODB_URI não encontrada nas variáveis de ambiente');
+    }
+    
     console.log("🔗 Conectando ao MongoDB...");
     await dbService.connect();
+    console.log("✅ MongoDB conectado com sucesso!");
     
     console.log("🌱 Populando dados iniciais...");
     await popularDadosIniciaisMongoDB(authService, petService, dbService);
     
     console.log('✅ Serviços MongoDB inicializados com sucesso!');
   } catch (error) {
-    console.error('❌ Erro ao inicializar serviços:', error);
-    process.exit(1);
+    console.error('❌ ERRO DETALHADO ao inicializar:', {
+      message: error.message,
+      stack: error.stack,
+      mongodb_uri_exists: !!process.env.MONGODB_URI,
+      mongodb_uri_preview: process.env.MONGODB_URI?.substring(0, 20) + '...'
+    });
+    
+    // NO VERCEL: Não fazer process.exit, deixar API rodar mesmo com erro de DB
+    console.log('⚠️  API continuará rodando mesmo com erro de DB para diagnóstico');
   }
 }
 
