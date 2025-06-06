@@ -2,10 +2,9 @@
 let currentUser = null;
 let allPets = [];
 let currentSection = 'home';
-
-// === VARIÁVEIS PARA SEÇÃO DE CUIDADOS ===
 let slideIndex = 1;
 let slideInterval;
+let navIndicatorPosition = 0;
 
 // === API BASE URL ===
 const API_BASE = '/api';
@@ -15,16 +14,13 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
     setupEventListeners();
     loadInitialData();
-    
-    // Inicializar funcionalidades da seção de cuidados automaticamente
-    setTimeout(() => {
-        initializeHomeFeatures();
-    }, 500);
+    initializeAnimations();
+    updateNavIndicator();
 });
 
 // === FUNÇÕES DE INICIALIZAÇÃO ===
 function initializeApp() {
-    // Verificar se há usuário logado (usando sessionStorage ao invés de localStorage)
+    // Verificar usuário logado
     try {
         const savedUser = sessionStorage.getItem('petresgate_user');
         if (savedUser) {
@@ -40,39 +36,49 @@ function initializeApp() {
 }
 
 function setupEventListeners() {
-    // Navegação
-    document.querySelectorAll('.nav-btn').forEach(btn => {
+    // Navegação principal
+    document.querySelectorAll('.nav-btn').forEach((btn, index) => {
         btn.addEventListener('click', (e) => {
             const section = e.currentTarget.dataset.section;
             showSection(section);
+            updateNavIndicator(index);
         });
     });
     
-    // Formulário de login
+    // Mobile menu toggle
+    const mobileToggle = document.querySelector('.mobile-menu-toggle');
+    if (mobileToggle) {
+        mobileToggle.addEventListener('click', toggleMobileMenu);
+    }
+    
+    // Formulários
     const loginForm = document.getElementById('login-form');
     if (loginForm) {
         loginForm.addEventListener('submit', handleLogin);
     }
     
-    // Formulário de cadastro de usuário
     const registerForm = document.getElementById('register-user-form');
     if (registerForm) {
         registerForm.addEventListener('submit', handleUserRegistration);
     }
     
-    // Formulário de registro de pet
     const petForm = document.getElementById('register-form');
     if (petForm) {
         petForm.addEventListener('submit', handlePetRegistration);
     }
     
-    // Busca de pets
+    const contactForm = document.getElementById('contactForm');
+    if (contactForm) {
+        contactForm.addEventListener('submit', handleContactFormSubmit);
+    }
+    
+    // Busca
     const searchBtn = document.getElementById('search-btn');
     const clearBtn = document.getElementById('clear-search');
     if (searchBtn) searchBtn.addEventListener('click', handleSearch);
     if (clearBtn) clearBtn.addEventListener('click', clearSearch);
     
-    // Logout
+    // Auth
     const logoutBtn = document.getElementById('logout-btn');
     if (logoutBtn) {
         logoutBtn.addEventListener('click', handleLogout);
@@ -87,60 +93,186 @@ function setupEventListeners() {
         notificationClose.addEventListener('click', hideNotification);
     }
     
-    // Formulário de contato da seção de cuidados
-    const contactForm = document.getElementById('contactForm');
-    if (contactForm) {
-        contactForm.addEventListener('submit', handleContactFormSubmit);
+    // Scroll suave para links internos
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+    });
+    
+    // Parallax no scroll
+    window.addEventListener('scroll', handleParallax);
+}
+
+// === NAVEGAÇÃO FLUIDA ===
+function updateNavIndicator(index) {
+    const navBtns = document.querySelectorAll('.nav-btn');
+    const indicator = document.querySelector('.nav-indicator');
+    
+    if (!indicator || navBtns.length === 0) return;
+    
+    // Se não foi passado índice, encontrar o botão ativo
+    if (index === undefined) {
+        navBtns.forEach((btn, i) => {
+            if (btn.classList.contains('active')) {
+                index = i;
+            }
+        });
+    }
+    
+    if (index !== undefined && navBtns[index]) {
+        const btn = navBtns[index];
+        const navRect = document.querySelector('.nav').getBoundingClientRect();
+        const btnRect = btn.getBoundingClientRect();
+        
+        const left = btnRect.left - navRect.left + 8;
+        const width = btnRect.width;
+        
+        indicator.style.left = `${left}px`;
+        indicator.style.width = `${width}px`;
+        indicator.style.opacity = '1';
     }
 }
 
-async function loadInitialData() {
-    try {
-        await Promise.all([
-            loadStats(),
-            loadRecentPets(),
-            loadFoundPets()
-        ]);
-    } catch (error) {
-        console.error('Erro ao carregar dados iniciais:', error);
-        showNotification('Erro ao carregar dados iniciais. Verifique sua conexão.', 'error');
-    }
+function toggleMobileMenu() {
+    const nav = document.querySelector('.nav');
+    const toggle = document.querySelector('.mobile-menu-toggle');
+    
+    nav.classList.toggle('mobile-open');
+    toggle.classList.toggle('active');
 }
 
-// === FUNÇÕES DE NAVEGAÇÃO ===
+// === ANIMAÇÕES E EFEITOS VISUAIS ===
+function initializeAnimations() {
+    // Intersection Observer para animações ao scroll
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -100px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('animate-in');
+                
+                // Animação especial para cards
+                if (entry.target.classList.contains('pet-card') || 
+                    entry.target.classList.contains('tip-card') ||
+                    entry.target.classList.contains('product-card')) {
+                    
+                    const delay = Array.from(entry.target.parentElement.children).indexOf(entry.target) * 100;
+                    entry.target.style.animationDelay = `${delay}ms`;
+                }
+            }
+        });
+    }, observerOptions);
+
+    // Observar elementos
+    const animatedElements = document.querySelectorAll(
+        '.pet-card, .tip-card, .product-card, .stat-item, .hero, .glass-card'
+    );
+    
+    animatedElements.forEach(el => {
+        observer.observe(el);
+    });
+    
+    // Animação dos números das estatísticas
+    animateStats();
+}
+
+function handleParallax() {
+    const scrolled = window.pageYOffset;
+    const blobs = document.querySelectorAll('.blob');
+    
+    blobs.forEach((blob, index) => {
+        const speed = 0.5 + (index * 0.2);
+        blob.style.transform = `translateY(${scrolled * speed}px)`;
+    });
+}
+
+// === ANIMAÇÃO DE ESTATÍSTICAS ===
+function animateStats() {
+    const stats = document.querySelectorAll('.stat-number');
+    
+    stats.forEach(stat => {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting && !entry.target.classList.contains('animated')) {
+                    animateNumber(entry.target);
+                    entry.target.classList.add('animated');
+                }
+            });
+        });
+        
+        observer.observe(stat);
+    });
+}
+
+function animateNumber(element) {
+    const finalValue = parseInt(element.textContent) || 0;
+    const duration = 2000;
+    const steps = 60;
+    const increment = finalValue / steps;
+    let current = 0;
+    
+    const timer = setInterval(() => {
+        current += increment;
+        if (current >= finalValue) {
+            current = finalValue;
+            clearInterval(timer);
+        }
+        element.textContent = Math.floor(current);
+    }, duration / steps);
+}
+
+// === NAVEGAÇÃO ENTRE SEÇÕES ===
 function showSection(sectionName) {
-    // Remover classe active de todas as seções
+    // Remover classes ativas
     document.querySelectorAll('.section').forEach(section => {
         section.classList.remove('active');
     });
     
-    // Remover classe active de todos os botões de navegação
-    document.querySelectorAll('.nav-btn').forEach(btn => {
-        btn.classList.remove('active');
+    document.querySelectorAll('.nav-btn').forEach((btn, index) => {
+        if (btn.dataset.section === sectionName) {
+            btn.classList.add('active');
+            updateNavIndicator(index);
+        } else {
+            btn.classList.remove('active');
+        }
     });
     
-    // Mostrar seção selecionada
+    // Mostrar seção
     const targetSection = document.getElementById(sectionName);
     if (targetSection) {
         targetSection.classList.add('active');
-    }
-    
-    // Ativar botão correspondente
-    const targetBtn = document.querySelector(`[data-section="${sectionName}"]`);
-    if (targetBtn) {
-        targetBtn.classList.add('active');
+        
+        // Animação de entrada suave
+        targetSection.style.opacity = '0';
+        targetSection.style.transform = 'translateY(20px)';
+        
+        requestAnimationFrame(() => {
+            targetSection.style.transition = 'all 0.5s ease-out';
+            targetSection.style.opacity = '1';
+            targetSection.style.transform = 'translateY(0)';
+        });
     }
     
     currentSection = sectionName;
     
-    // Carregar dados específicos da seção
+    // Carregar dados da seção
     loadSectionData(sectionName);
+    
+    // Scroll para o topo suavemente
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 async function loadSectionData(sectionName) {
     switch (sectionName) {
         case 'home':
-            // Reinicializar funcionalidades da página inicial se necessário
             setTimeout(() => {
                 initializeHomeFeatures();
             }, 100);
@@ -160,7 +292,161 @@ async function loadSectionData(sectionName) {
     }
 }
 
-// === FUNÇÕES DE API ===
+// === INICIALIZAÇÃO DE FUNCIONALIDADES HOME ===
+function initializeHomeFeatures() {
+    initializeSlideshow();
+    initializeTipCards();
+    initializeProductCards();
+    initializeSponsorCarousel();
+}
+
+// === SLIDESHOW MODERNO ===
+function initializeSlideshow() {
+    const slides = document.querySelectorAll('.slide');
+    const dots = document.querySelectorAll('.slide-dot');
+    
+    if (slides.length === 0) return;
+    
+    showSlide(slideIndex);
+    
+    // Auto play
+    if (slideInterval) clearInterval(slideInterval);
+    slideInterval = setInterval(() => {
+        changeSlide(1);
+    }, 5000);
+}
+
+function changeSlide(direction) {
+    slideIndex += direction;
+    showSlide(slideIndex);
+}
+
+function currentSlide(n) {
+    if (slideInterval) clearInterval(slideInterval);
+    showSlide(slideIndex = n);
+    
+    // Reiniciar autoplay
+    setTimeout(() => {
+        slideInterval = setInterval(() => {
+            changeSlide(1);
+        }, 5000);
+    }, 10000);
+}
+
+function showSlide(n) {
+    const slides = document.querySelectorAll('.slide');
+    const dots = document.querySelectorAll('.slide-dot');
+    
+    if (!slides.length) return;
+    
+    if (n > slides.length) slideIndex = 1;
+    if (n < 1) slideIndex = slides.length;
+    
+    slides.forEach((slide, index) => {
+        slide.classList.remove('active');
+        slide.style.opacity = '0';
+    });
+    
+    dots.forEach(dot => dot.classList.remove('active'));
+    
+    const currentSlideEl = slides[slideIndex - 1];
+    const currentDot = dots[slideIndex - 1];
+    
+    if (currentSlideEl && currentDot) {
+        setTimeout(() => {
+            currentSlideEl.classList.add('active');
+            currentSlideEl.style.opacity = '1';
+            currentDot.classList.add('active');
+        }, 50);
+    }
+}
+
+// === CARDS INTERATIVOS ===
+function initializeTipCards() {
+    const tipCards = document.querySelectorAll('.tip-card');
+    
+    tipCards.forEach(card => {
+        card.addEventListener('mouseenter', () => {
+            const icon = card.querySelector('.tip-icon-wrapper');
+            if (icon) {
+                icon.style.animation = 'none';
+                requestAnimationFrame(() => {
+                    icon.style.animation = 'rotate 0.6s ease-in-out';
+                });
+            }
+        });
+    });
+}
+
+function initializeProductCards() {
+    const productCards = document.querySelectorAll('.product-card');
+    
+    productCards.forEach(card => {
+        const store = card.querySelector('.product-store');
+        if (store) {
+            store.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Efeito de ripple
+                createRipple(e, store);
+                
+                const storeName = store.textContent.trim();
+                showNotification(`Redirecionando para ${storeName}...`, 'info');
+                
+                setTimeout(() => {
+                    showNotification('Em breve! Esta loja estará disponível.', 'info');
+                }, 1500);
+            });
+        }
+    });
+}
+
+function initializeSponsorCarousel() {
+    const track = document.querySelector('.sponsors-track');
+    if (!track) return;
+    
+    // Pausar animação ao hover
+    track.addEventListener('mouseenter', () => {
+        track.style.animationPlayState = 'paused';
+    });
+    
+    track.addEventListener('mouseleave', () => {
+        track.style.animationPlayState = 'running';
+    });
+    
+    // Click nos sponsors
+    const sponsors = track.querySelectorAll('.sponsor-logo');
+    sponsors.forEach(sponsor => {
+        sponsor.addEventListener('click', () => {
+            const name = sponsor.querySelector('span').textContent;
+            showNotification(`Parceiro: ${name}`, 'info');
+        });
+    });
+}
+
+// === EFEITO RIPPLE ===
+function createRipple(event, element) {
+    const ripple = document.createElement('span');
+    ripple.classList.add('ripple');
+    
+    const rect = element.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height);
+    const x = event.clientX - rect.left - size / 2;
+    const y = event.clientY - rect.top - size / 2;
+    
+    ripple.style.width = ripple.style.height = size + 'px';
+    ripple.style.left = x + 'px';
+    ripple.style.top = y + 'px';
+    
+    element.appendChild(ripple);
+    
+    setTimeout(() => {
+        ripple.remove();
+    }, 600);
+}
+
+// === API FUNCTIONS ===
 async function apiRequest(endpoint, options = {}) {
     try {
         const response = await fetch(`${API_BASE}${endpoint}`, {
@@ -184,103 +470,103 @@ async function apiRequest(endpoint, options = {}) {
     }
 }
 
-// === ESTATÍSTICAS ===
+// === CARREGAMENTO DE DADOS ===
+async function loadInitialData() {
+    try {
+        await Promise.all([
+            loadStats(),
+            loadRecentPets()
+        ]);
+    } catch (error) {
+        console.error('Erro ao carregar dados iniciais:', error);
+        showNotification('Erro ao carregar dados. Verifique sua conexão.', 'error');
+    }
+}
+
 async function loadStats() {
     try {
-        showLoading('stats-perdidos');
-        showLoading('stats-encontrados');
-        showLoading('stats-total');
-        
         const stats = await apiRequest('/stats');
         
         document.getElementById('stats-perdidos').textContent = stats.stats.perdidos;
         document.getElementById('stats-encontrados').textContent = stats.stats.encontrados;
         document.getElementById('stats-total').textContent = stats.stats.total;
+        
+        // Re-animar números
+        animateStats();
     } catch (error) {
         console.error('Erro ao carregar estatísticas:', error);
-        document.getElementById('stats-perdidos').textContent = '—';
-        document.getElementById('stats-encontrados').textContent = '—';
-        document.getElementById('stats-total').textContent = '—';
     }
 }
 
-// === PETS RECENTES ===
 async function loadRecentPets() {
     try {
         const container = document.getElementById('recent-pets-list');
         if (!container) return;
         
-        container.innerHTML = '<div class="loading"><div class="spinner"></div>Carregando pets...</div>';
+        container.innerHTML = createLoadingState();
         
         const response = await apiRequest('/pets?status=PERDIDO');
-        const pets = response.pets.slice(0, 6); // Mostrar apenas os 6 mais recentes
+        const pets = response.pets.slice(0, 6);
         
         if (pets.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-search"></i>
-                    <h3>Nenhum pet perdido no momento</h3>
-                    <p>Que ótima notícia! 🎉</p>
-                </div>
-            `;
+            container.innerHTML = createEmptyState(
+                'fa-paw',
+                'Nenhum pet perdido no momento',
+                'Que ótima notícia! 🎉'
+            );
             return;
         }
         
         container.innerHTML = pets.map(pet => createPetCard(pet)).join('');
+        
+        // Animar cards ao aparecer
+        requestAnimationFrame(() => {
+            container.querySelectorAll('.pet-card').forEach((card, index) => {
+                setTimeout(() => {
+                    card.classList.add('animate-in');
+                }, index * 100);
+            });
+        });
     } catch (error) {
         console.error('Erro ao carregar pets recentes:', error);
-        const container = document.getElementById('recent-pets-list');
-        if (container) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <h3>Erro ao carregar pets</h3>
-                    <p>Tente novamente mais tarde</p>
-                </div>
-            `;
-        }
     }
 }
 
-// === PETS ENCONTRADOS ===
 async function loadFoundPets() {
     try {
         const container = document.getElementById('found-pets-list');
         if (!container) return;
         
-        container.innerHTML = '<div class="loading"><div class="spinner"></div>Carregando reencontros...</div>';
+        container.innerHTML = createLoadingState();
         
         const response = await apiRequest('/pets/historico/reencontros');
         const pets = response.pets;
         
         if (pets.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-heart"></i>
-                    <h3>Ainda não há reencontros registrados</h3>
-                    <p>Em breve teremos histórias felizes para compartilhar! 💕</p>
-                </div>
-            `;
+            container.innerHTML = createEmptyState(
+                'fa-heart',
+                'Ainda não há reencontros registrados',
+                'Em breve teremos histórias felizes! 💕'
+            );
             return;
         }
         
         container.innerHTML = pets.map(pet => createPetCard(pet, true)).join('');
+        
+        // Animar cards
+        requestAnimationFrame(() => {
+            container.querySelectorAll('.pet-card').forEach((card, index) => {
+                setTimeout(() => {
+                    card.classList.add('animate-in');
+                }, index * 100);
+            });
+        });
     } catch (error) {
         console.error('Erro ao carregar pets encontrados:', error);
-        const container = document.getElementById('found-pets-list');
-        if (container) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <h3>Erro ao carregar reencontros</h3>
-                    <p>Tente novamente mais tarde</p>
-                </div>
-            `;
-        }
     }
 }
 
-// === BUSCA DE PETS ===
+// === BUSCA ===
 async function loadAllPetsForSearch() {
     try {
         const response = await apiRequest('/pets?status=PERDIDO');
@@ -288,7 +574,7 @@ async function loadAllPetsForSearch() {
         displaySearchResults(allPets);
     } catch (error) {
         console.error('Erro ao carregar pets para busca:', error);
-        showNotification('Erro ao carregar pets para busca', 'error');
+        showNotification('Erro ao carregar pets', 'error');
     }
 }
 
@@ -325,17 +611,24 @@ function displaySearchResults(pets) {
     if (!container) return;
     
     if (pets.length === 0) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-search"></i>
-                <h3>Nenhum pet encontrado</h3>
-                <p>Tente outros termos de busca</p>
-            </div>
-        `;
+        container.innerHTML = createEmptyState(
+            'fa-search',
+            'Nenhum pet encontrado',
+            'Tente outros termos de busca'
+        );
         return;
     }
     
     container.innerHTML = pets.map(pet => createPetCard(pet)).join('');
+    
+    // Animar resultados
+    requestAnimationFrame(() => {
+        container.querySelectorAll('.pet-card').forEach((card, index) => {
+            setTimeout(() => {
+                card.classList.add('animate-in');
+            }, index * 50);
+        });
+    });
 }
 
 // === AUTENTICAÇÃO ===
@@ -344,6 +637,12 @@ async function handleLogin(e) {
     
     const email = document.getElementById('login-email').value;
     const senha = document.getElementById('login-password').value;
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    
+    // Loading state
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Entrando...';
+    submitBtn.disabled = true;
     
     try {
         const response = await apiRequest('/auth/login', {
@@ -352,21 +651,23 @@ async function handleLogin(e) {
         });
         
         currentUser = response.usuario;
-        
-        // Usar sessionStorage ao invés de localStorage
-        try {
-            sessionStorage.setItem('petresgate_user', JSON.stringify(currentUser));
-        } catch (error) {
-            console.log('Erro ao salvar usuário na sessão');
-        }
+        sessionStorage.setItem('petresgate_user', JSON.stringify(currentUser));
         
         updateUIForLoggedUser();
         showNotification('Login realizado com sucesso!', 'success');
         
-        // Limpar formulário
-        document.getElementById('login-form').reset();
+        // Limpar form
+        e.target.reset();
+        
+        // Ir para home
+        setTimeout(() => {
+            showSection('home');
+        }, 1000);
     } catch (error) {
         showNotification(error.message, 'error');
+    } finally {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
     }
 }
 
@@ -376,6 +677,11 @@ async function handleUserRegistration(e) {
     const nome = document.getElementById('register-name').value;
     const email = document.getElementById('register-email').value;
     const senha = document.getElementById('register-password').value;
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cadastrando...';
+    submitBtn.disabled = true;
     
     try {
         const response = await apiRequest('/auth/register', {
@@ -383,24 +689,22 @@ async function handleUserRegistration(e) {
             body: JSON.stringify({ nome, email, senha })
         });
         
-        showNotification('Usuário cadastrado com sucesso! Agora você pode fazer login.', 'success');
+        showNotification('Cadastro realizado! Faça login para continuar.', 'success');
+        e.target.reset();
         
-        // Limpar formulário
-        document.getElementById('register-user-form').reset();
+        // Focar no form de login
+        document.getElementById('login-email').focus();
     } catch (error) {
         showNotification(error.message, 'error');
+    } finally {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
     }
 }
 
 function handleLogout() {
     currentUser = null;
-    
-    try {
-        sessionStorage.removeItem('petresgate_user');
-    } catch (error) {
-        console.log('Erro ao remover usuário da sessão');
-    }
-    
+    sessionStorage.removeItem('petresgate_user');
     updateUIForLoggedUser();
     showNotification('Logout realizado com sucesso!', 'success');
     showSection('home');
@@ -411,21 +715,19 @@ function updateUIForLoggedUser() {
     const loginContainer = document.getElementById('login-form-container');
     const profileContainer = document.getElementById('profile-container');
     
-    if (!loginBtn || !loginContainer || !profileContainer) return;
-    
     if (currentUser) {
-        loginBtn.innerHTML = '<i class="fas fa-user-circle"></i> Perfil';
-        loginContainer.style.display = 'none';
-        profileContainer.style.display = 'block';
-        
-        document.getElementById('profile-name').textContent = currentUser.nome;
-        document.getElementById('profile-email').textContent = currentUser.email;
-        
-        loadUserPets();
+        loginBtn.innerHTML = '<i class="fas fa-user-circle"></i><span>Perfil</span>';
+        if (loginContainer) loginContainer.style.display = 'none';
+        if (profileContainer) {
+            profileContainer.style.display = 'block';
+            document.getElementById('profile-name').textContent = currentUser.nome;
+            document.getElementById('profile-email').textContent = currentUser.email;
+            loadUserPets();
+        }
     } else {
-        loginBtn.innerHTML = '<i class="fas fa-user"></i> Login';
-        loginContainer.style.display = 'block';
-        profileContainer.style.display = 'none';
+        loginBtn.innerHTML = '<i class="fas fa-user"></i><span>Login</span>';
+        if (loginContainer) loginContainer.style.display = 'block';
+        if (profileContainer) profileContainer.style.display = 'none';
     }
 }
 
@@ -433,12 +735,10 @@ function updateLoginSection() {
     updateUIForLoggedUser();
 }
 
-// === REGISTRO DE PETS ===
+// === REGISTRO DE PET ===
 function checkAuthForRegistration() {
     const warning = document.getElementById('register-warning');
     const form = document.getElementById('register-form');
-    
-    if (!warning || !form) return;
     
     if (!currentUser) {
         warning.style.display = 'flex';
@@ -456,6 +756,11 @@ async function handlePetRegistration(e) {
         showNotification('Você precisa estar logado para registrar um pet', 'error');
         return;
     }
+    
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Registrando...';
+    submitBtn.disabled = true;
     
     const formData = {
         nome: document.getElementById('pet-name').value,
@@ -478,14 +783,23 @@ async function handlePetRegistration(e) {
         });
         
         showNotification('Pet registrado com sucesso!', 'success');
-        document.getElementById('register-form').reset();
+        e.target.reset();
         
         // Recarregar dados
-        await loadStats();
-        await loadRecentPets();
+        await Promise.all([
+            loadStats(),
+            loadRecentPets()
+        ]);
         
+        // Ir para home
+        setTimeout(() => {
+            showSection('home');
+        }, 1500);
     } catch (error) {
         showNotification(error.message, 'error');
+    } finally {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
     }
 }
 
@@ -497,86 +811,99 @@ async function loadUserPets() {
         const container = document.getElementById('user-pets');
         if (!container) return;
         
-        container.innerHTML = '<div class="loading"><div class="spinner"></div>Carregando seus pets...</div>';
+        container.innerHTML = createLoadingState();
         
         const response = await apiRequest('/pets');
         const userPets = response.pets.filter(pet => pet.idTutor === currentUser.id);
         
         if (userPets.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-paw"></i>
-                    <h3>Você ainda não registrou nenhum pet</h3>
-                    <p>Registre um pet perdido na seção correspondente</p>
-                </div>
-            `;
+            container.innerHTML = createEmptyState(
+                'fa-paw',
+                'Você ainda não registrou nenhum pet',
+                'Registre um pet perdido na seção correspondente'
+            );
             return;
         }
         
         container.innerHTML = userPets.map(pet => createPetCard(pet, false, true)).join('');
     } catch (error) {
         console.error('Erro ao carregar pets do usuário:', error);
-        const container = document.getElementById('user-pets');
-        if (container) {
-            container.innerHTML = '<p>Erro ao carregar pets</p>';
-        }
     }
 }
 
-// === CRIAR CARD DE PET ===
+// === CRIAR ELEMENTOS UI ===
 function createPetCard(pet, isFound = false, showActions = false) {
     const statusClass = pet.status.toLowerCase();
     const statusText = pet.status === 'PERDIDO' ? 'Perdido' : 'Encontrado';
     
     const imageUrl = pet.foto && pet.foto !== 'N/A (Console não suporta imagens)' 
         ? pet.foto 
-        : `https://via.placeholder.com/300x200/667eea/ffffff?text=${pet.especie}`;
+        : `https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=400&h=300&fit=crop`;
     
     const actionsHtml = showActions && pet.status === 'PERDIDO' ? `
-        <div class="pet-actions" style="margin-top: 1rem;">
-            <button class="btn btn-small btn-primary" onclick="markAsFound(${pet.id})">
-                <i class="fas fa-check"></i> Marcar como Encontrado
-            </button>
-        </div>
+        <button class="btn btn-primary btn-small" onclick="markAsFound(${pet.id})">
+            <i class="fas fa-check"></i> Marcar como Encontrado
+        </button>
     ` : '';
     
     return `
         <div class="pet-card" onclick="showPetModal(${pet.id})">
-            <img src="${imageUrl}" alt="${pet.nome}" onerror="this.src='https://via.placeholder.com/300x200/667eea/ffffff?text=${pet.especie}'">
-            <div class="pet-name">${pet.nome}</div>
-            <div class="pet-info">
-                <span class="pet-species">${pet.especie}</span>
-                <span class="pet-status ${statusClass}">${statusText}</span>
+            <img src="${imageUrl}" alt="${pet.nome}" onerror="this.src='https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=400&h=300&fit=crop'">
+            <div class="pet-card-content">
+                <div class="pet-name">${pet.nome}</div>
+                <div class="pet-info">
+                    <span class="pet-species">${pet.especie}</span>
+                    <span class="pet-status ${statusClass}">${statusText}</span>
+                </div>
+                <div class="pet-location">
+                    <i class="fas fa-map-marker-alt"></i>
+                    ${pet.localPerdido}
+                </div>
+                <div class="pet-date">
+                    Perdido em: ${pet.dataPerdido}
+                    ${isFound ? `<br>Encontrado em: ${pet.dataReencontro}` : ''}
+                </div>
+                ${actionsHtml}
             </div>
-            <div class="pet-location">
-                <i class="fas fa-map-marker-alt"></i>
-                ${pet.localPerdido}
-            </div>
-            <div class="pet-date">
-                Perdido em: ${pet.dataPerdido}
-                ${isFound ? `• Encontrado em: ${pet.dataReencontro}` : ''}
-            </div>
-            ${actionsHtml}
         </div>
     `;
 }
 
-// === MODAL DO PET ===
+function createLoadingState() {
+    return `
+        <div class="loading">
+            <div class="spinner"></div>
+            <span>Carregando...</span>
+        </div>
+    `;
+}
+
+function createEmptyState(icon, title, message) {
+    return `
+        <div class="empty-state">
+            <i class="fas ${icon}"></i>
+            <h3>${title}</h3>
+            <p>${message}</p>
+        </div>
+    `;
+}
+
+// === MODAL ===
 function setupModalEvents() {
     const modal = document.getElementById('pet-modal');
     if (!modal) return;
     
-    const closeBtn = modal.querySelector('.close');
-    
-    if (closeBtn) {
-        closeBtn.addEventListener('click', () => {
-            modal.style.display = 'none';
-        });
-    }
-    
+    // Fechar ao clicar fora
     window.addEventListener('click', (e) => {
         if (e.target === modal) {
-            modal.style.display = 'none';
+            closeModal();
+        }
+    });
+    
+    // ESC para fechar
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.style.display === 'block') {
+            closeModal();
         }
     });
 }
@@ -593,48 +920,103 @@ async function showPetModal(petId) {
         
         const imageUrl = pet.foto && pet.foto !== 'N/A (Console não suporta imagens)' 
             ? pet.foto 
-            : `https://via.placeholder.com/400x300/667eea/ffffff?text=${pet.especie}`;
+            : `https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=600&h=400&fit=crop`;
         
         detailsContainer.innerHTML = `
-            <h2><i class="fas fa-paw"></i> ${pet.nome}</h2>
-            <img src="${imageUrl}" alt="${pet.nome}" style="width: 100%; height: 300px; object-fit: cover; border-radius: 0.5rem; margin: 1rem 0;">
-            
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
-                <div><strong>Espécie:</strong> ${pet.especie}</div>
-                <div><strong>Raça:</strong> ${pet.raca || 'Não informado'}</div>
-                <div><strong>Gênero:</strong> ${pet.genero || 'Não informado'}</div>
-                <div><strong>Idade:</strong> ${pet.idade || 'Não informado'}</div>
-                <div><strong>Cor:</strong> ${pet.cor || 'Não informado'}</div>
-                <div><strong>Status:</strong> <span class="pet-status ${pet.status.toLowerCase()}">${pet.status}</span></div>
+            <div class="modal-header">
+                <h2><i class="fas fa-paw"></i> ${pet.nome}</h2>
+                <span class="pet-status ${pet.status.toLowerCase()}">${pet.status}</span>
             </div>
             
-            <div style="margin-bottom: 1rem;">
-                <strong><i class="fas fa-map-marker-alt"></i> Local onde foi perdido:</strong>
-                <p>${pet.localPerdido}</p>
+            <img src="${imageUrl}" alt="${pet.nome}" class="modal-image">
+            
+            <div class="modal-info-grid">
+                <div class="info-item">
+                    <i class="fas fa-dog"></i>
+                    <div>
+                        <span class="info-label">Espécie</span>
+                        <span class="info-value">${pet.especie}</span>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <i class="fas fa-dna"></i>
+                    <div>
+                        <span class="info-label">Raça</span>
+                        <span class="info-value">${pet.raca || 'Não informado'}</span>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <i class="fas fa-venus-mars"></i>
+                    <div>
+                        <span class="info-label">Gênero</span>
+                        <span class="info-value">${pet.genero || 'Não informado'}</span>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <i class="fas fa-birthday-cake"></i>
+                    <div>
+                        <span class="info-label">Idade</span>
+                        <span class="info-value">${pet.idade || 'Não informado'}</span>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <i class="fas fa-palette"></i>
+                    <div>
+                        <span class="info-label">Cor</span>
+                        <span class="info-value">${pet.cor || 'Não informado'}</span>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <div>
+                        <span class="info-label">Local</span>
+                        <span class="info-value">${pet.localPerdido}</span>
+                    </div>
+                </div>
             </div>
             
-            <div style="margin-bottom: 1rem;">
-                <strong><i class="fas fa-calendar"></i> Data:</strong>
-                <p>Perdido em: ${pet.dataPerdido}</p>
-                ${pet.status === 'ENCONTRADO' ? `<p>Encontrado em: ${pet.dataReencontro}</p>` : ''}
+            <div class="modal-dates">
+                <p><i class="fas fa-calendar"></i> Perdido em: ${pet.dataPerdido}</p>
+                ${pet.status === 'ENCONTRADO' ? `<p><i class="fas fa-heart"></i> Encontrado em: ${pet.dataReencontro}</p>` : ''}
             </div>
             
-            <div style="margin-bottom: 1rem;">
-                <strong><i class="fas fa-comment"></i> Observações do tutor:</strong>
-                <p>${pet.comentarioTutor || 'Nenhuma observação'}</p>
-            </div>
+            ${pet.comentarioTutor ? `
+                <div class="modal-description">
+                    <h3><i class="fas fa-comment"></i> Observações</h3>
+                    <p>${pet.comentarioTutor}</p>
+                </div>
+            ` : ''}
             
             ${currentUser && currentUser.id === pet.idTutor && pet.status === 'PERDIDO' ? `
-                <button class="btn btn-primary" onclick="markAsFound(${pet.id}); document.getElementById('pet-modal').style.display='none';">
-                    <i class="fas fa-check"></i> Marcar como Encontrado
-                </button>
+                <div class="modal-actions">
+                    <button class="btn btn-primary btn-large" onclick="markAsFound(${pet.id})">
+                        <i class="fas fa-check"></i> Marcar como Encontrado
+                    </button>
+                </div>
             ` : ''}
         `;
         
         modal.style.display = 'block';
+        document.body.style.overflow = 'hidden';
+        
+        // Animação de entrada
+        requestAnimationFrame(() => {
+            modal.classList.add('modal-open');
+        });
     } catch (error) {
         console.error('Erro ao carregar detalhes do pet:', error);
         showNotification('Erro ao carregar detalhes do pet', 'error');
+    }
+}
+
+function closeModal() {
+    const modal = document.getElementById('pet-modal');
+    if (modal) {
+        modal.classList.remove('modal-open');
+        setTimeout(() => {
+            modal.style.display = 'none';
+            document.body.style.overflow = '';
+        }, 300);
     }
 }
 
@@ -652,6 +1034,9 @@ async function markAsFound(petId) {
         
         showNotification('Pet marcado como encontrado! 🎉', 'success');
         
+        // Fechar modal
+        closeModal();
+        
         // Recarregar dados
         await Promise.all([
             loadStats(),
@@ -660,58 +1045,26 @@ async function markAsFound(petId) {
             loadUserPets()
         ]);
         
+        // Celebração
+        celebrate();
     } catch (error) {
         showNotification(error.message, 'error');
     }
 }
 
-// ===== FUNCIONALIDADES DA PÁGINA INICIAL =====
-
-// === SLIDESHOW ===
-function initializeSlideshow() {
-    const slides = document.querySelectorAll('.slide');
-    const dots = document.querySelectorAll('.slide-dot');
+// === EFEITO DE CELEBRAÇÃO ===
+function celebrate() {
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f7dc6f', '#bb8fce'];
     
-    if (slides.length === 0 || dots.length === 0) return;
-    
-    showSlide(slideIndex);
-    
-    // Auto slideshow
-    if (slideInterval) clearInterval(slideInterval);
-    slideInterval = setInterval(() => {
-        slideIndex++;
-        showSlide(slideIndex);
-    }, 4000);
-}
-
-function currentSlide(n) {
-    if (slideInterval) clearInterval(slideInterval);
-    showSlide(slideIndex = n);
-    
-    // Reinicia o auto slideshow após 10 segundos
-    setTimeout(() => {
-        slideInterval = setInterval(() => {
-            slideIndex++;
-            showSlide(slideIndex);
-        }, 4000);
-    }, 10000);
-}
-
-function showSlide(n) {
-    const slides = document.querySelectorAll('.slide');
-    const dots = document.querySelectorAll('.slide-dot');
-    
-    if (!slides.length || !dots.length) return;
-    
-    if (n > slides.length) { slideIndex = 1; }
-    if (n < 1) { slideIndex = slides.length; }
-    
-    slides.forEach(slide => slide.classList.remove('active'));
-    dots.forEach(dot => dot.classList.remove('active'));
-    
-    if (slides[slideIndex - 1] && dots[slideIndex - 1]) {
-        slides[slideIndex - 1].classList.add('active');
-        dots[slideIndex - 1].classList.add('active');
+    for (let i = 0; i < 50; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti';
+        confetti.style.left = Math.random() * 100 + '%';
+        confetti.style.animationDelay = Math.random() * 3 + 's';
+        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        document.body.appendChild(confetti);
+        
+        setTimeout(() => confetti.remove(), 3000);
     }
 }
 
@@ -719,169 +1072,19 @@ function showSlide(n) {
 function handleContactFormSubmit(e) {
     e.preventDefault();
     
-    // Simular envio
-    const submitBtn = document.querySelector('.submit-btn');
-    if (!submitBtn) return;
-    
+    const submitBtn = e.target.querySelector('button[type="submit"]');
     const originalText = submitBtn.innerHTML;
     
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
     submitBtn.disabled = true;
     
+    // Simular envio
     setTimeout(() => {
-        showNotification('Mensagem enviada com sucesso! Entraremos em contato em breve.', 'success');
+        showNotification('Mensagem enviada com sucesso!', 'success');
         e.target.reset();
         submitBtn.innerHTML = originalText;
         submitBtn.disabled = false;
     }, 2000);
-}
-
-// === INTERSECTION OBSERVER PARA ANIMAÇÕES ===
-function initializeAnimations() {
-    const observerOptions = {
-        threshold: 0.1,
-        rootMargin: '0px 0px -50px 0px'
-    };
-
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('fade-in');
-            }
-        });
-    }, observerOptions);
-
-    // Observar elementos para animação
-    document.querySelectorAll('.tip-card, .product-card, .sponsor-logo').forEach(el => {
-        observer.observe(el);
-    });
-}
-
-// === EFEITO DE HOVER NAS IMAGENS DAS DICAS ===
-function initializeTipCardEffects() {
-    document.querySelectorAll('.tip-card').forEach(card => {
-        card.addEventListener('mouseenter', () => {
-            const images = card.querySelectorAll('.tip-img');
-            images.forEach((img, index) => {
-                setTimeout(() => {
-                    img.style.transform = 'scale(1.1) rotate(2deg)';
-                }, index * 100);
-            });
-        });
-
-        card.addEventListener('mouseleave', () => {
-            const images = card.querySelectorAll('.tip-img');
-            images.forEach(img => {
-                img.style.transform = 'scale(1) rotate(0deg)';
-            });
-        });
-    });
-}
-
-// === PRODUTOS - EFEITOS INTERATIVOS ===
-function initializeProductEffects() {
-    document.querySelectorAll('.product-store').forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            const storeName = e.target.textContent;
-            showNotification(`Redirecionando para ${storeName}...`, 'info');
-            
-            // Simular redirecionamento
-            setTimeout(() => {
-                showNotification('Em uma aplicação real, isso abriria a loja!', 'info');
-            }, 1500);
-        });
-    });
-}
-
-// === PATROCINADORES - EFEITOS INTERATIVOS ===
-function initializeSponsorEffects() {
-    document.querySelectorAll('.sponsor-logo').forEach(logo => {
-        logo.addEventListener('click', () => {
-            const sponsorName = logo.textContent.trim();
-            showNotification(`Visitando ${sponsorName}...`, 'info');
-            
-            // Simular visita ao patrocinador
-            setTimeout(() => {
-                showNotification('Em uma aplicação real, isso abriria o site do parceiro!', 'info');
-            }, 1500);
-        });
-    });
-}
-
-// === LINKS SOCIAIS - INTERATIVIDADE ===
-function initializeSocialEffects() {
-    document.querySelectorAll('.social-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.preventDefault();
-            const platform = btn.classList[1]; // facebook, instagram, etc.
-            showNotification(`Abrindo ${platform.charAt(0).toUpperCase() + platform.slice(1)}...`, 'info');
-        });
-    });
-}
-
-// === MÉTODOS DE CONTATO - INTERATIVIDADE ===
-function initializeContactMethodEffects() {
-    document.querySelectorAll('.contact-method').forEach(method => {
-        method.addEventListener('click', (e) => {
-            const href = method.getAttribute('href');
-            
-            if (href && href.startsWith('tel:')) {
-                e.preventDefault();
-                showNotification('Número copiado! Use seu telefone para ligar.', 'success');
-                
-                // Tentar copiar número para clipboard
-                const phoneNumber = href.replace('tel:', '');
-                if (navigator.clipboard) {
-                    navigator.clipboard.writeText(phoneNumber);
-                }
-            } else if (href && href.startsWith('mailto:')) {
-                showNotification('Abrindo seu cliente de email...', 'info');
-            } else if (href && href.includes('wa.me')) {
-                showNotification('Abrindo WhatsApp...', 'info');
-            }
-        });
-    });
-}
-
-// === INICIALIZAÇÃO DE TODAS AS FUNCIONALIDADES DA PÁGINA INICIAL ===
-function initializeHomeFeatures() {
-    // Aguardar um pouco para garantir que o DOM esteja pronto
-    setTimeout(() => {
-        initializeSlideshow();
-        initializeAnimations();
-        initializeTipCardEffects();
-        initializeProductEffects();
-        initializeSponsorEffects();
-        initializeSocialEffects();
-        initializeContactMethodEffects();
-    }, 100);
-}
-
-// === SCROLL TO TOP ===
-function scrollToTop() {
-    window.scrollTo({
-        top: 0,
-        behavior: 'smooth'
-    });
-}
-
-// === UTILITÁRIOS ===
-function formatDateForAPI(dateString) {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('pt-BR');
-}
-
-function showLoading(elementId) {
-    const element = document.getElementById(elementId);
-    if (element) {
-        element.innerHTML = '<div class="spinner"></div>';
-    }
-}
-
-function showLogin() {
-    showSection('login');
 }
 
 // === NOTIFICAÇÕES ===
@@ -893,9 +1096,12 @@ function showNotification(message, type = 'info') {
     
     messageEl.textContent = message;
     notification.className = `notification ${type}`;
-    notification.style.display = 'flex';
+    notification.style.display = 'block';
     
-    // Auto-hide após 5 segundos
+    requestAnimationFrame(() => {
+        notification.classList.add('show');
+    });
+    
     setTimeout(() => {
         hideNotification();
     }, 5000);
@@ -904,13 +1110,199 @@ function showNotification(message, type = 'info') {
 function hideNotification() {
     const notification = document.getElementById('notification');
     if (notification) {
-        notification.style.display = 'none';
+        notification.classList.remove('show');
+        setTimeout(() => {
+            notification.style.display = 'none';
+        }, 300);
     }
 }
 
-// === EXPOSURE PARA FUNÇÕES GLOBAIS ===
+// === UTILITÁRIOS ===
+function formatDateForAPI(dateString) {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('pt-BR');
+}
+
+function scrollToTop() {
+    window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+    });
+}
+
+function showLogin() {
+    showSection('login');
+}
+
+// === ESTILOS CSS DINÂMICOS ===
+const dynamicStyles = `
+    .animate-in {
+        animation: fadeInUp 0.6s ease-out forwards;
+    }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @keyframes rotate {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    
+    .ripple {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.6);
+        transform: scale(0);
+        animation: rippleEffect 0.6s ease-out;
+        pointer-events: none;
+    }
+    
+    @keyframes rippleEffect {
+        to {
+            transform: scale(4);
+            opacity: 0;
+        }
+    }
+    
+    .modal-open {
+        animation: modalOpen 0.3s ease-out;
+    }
+    
+    @keyframes modalOpen {
+        from {
+            opacity: 0;
+            transform: scale(0.9);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+    
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+    
+    .modal-image {
+        width: 100%;
+        height: 300px;
+        object-fit: cover;
+        border-radius: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .modal-info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .info-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem;
+        background: var(--bg-light);
+        border-radius: 0.75rem;
+    }
+    
+    .info-item i {
+        font-size: 1.25rem;
+        color: var(--primary);
+    }
+    
+    .info-label {
+        display: block;
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+    }
+    
+    .info-value {
+        display: block;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+    
+    .modal-dates {
+        margin-bottom: 1.5rem;
+        color: var(--text-secondary);
+    }
+    
+    .modal-dates p {
+        margin-bottom: 0.5rem;
+    }
+    
+    .modal-description {
+        background: var(--bg-light);
+        padding: 1.5rem;
+        border-radius: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .modal-description h3 {
+        margin-bottom: 0.75rem;
+    }
+    
+    .modal-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+    }
+    
+    .notification.show {
+        animation: notificationSlide 0.3s ease-out;
+    }
+    
+    @keyframes notificationSlide {
+        from {
+            transform: translateX(100%);
+        }
+        to {
+            transform: translateX(0);
+        }
+    }
+    
+    .confetti {
+        position: fixed;
+        width: 10px;
+        height: 10px;
+        background: #f0f;
+        animation: confettiFall 3s ease-out forwards;
+        z-index: 1000;
+    }
+    
+    @keyframes confettiFall {
+        to {
+            transform: translateY(100vh) rotate(360deg);
+            opacity: 0;
+        }
+    }
+`;
+
+// Adicionar estilos dinâmicos
+const styleSheet = document.createElement('style');
+styleSheet.textContent = dynamicStyles;
+document.head.appendChild(styleSheet);
+
+// === EXPOSIÇÃO DE FUNÇÕES GLOBAIS ===
 window.showPetModal = showPetModal;
 window.markAsFound = markAsFound;
 window.showLogin = showLogin;
 window.currentSlide = currentSlide;
+window.changeSlide = changeSlide;
 window.scrollToTop = scrollToTop;
+window.closeModal = closeModal;
+window.showSection = showSection;
