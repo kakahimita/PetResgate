@@ -1,0 +1,1191 @@
+/* ==========================================================================
+   SISTEMA DE ACESSIBILIDADE - PetResgate
+   Seguindo diretrizes WCAG 2.1 AA
+   ========================================================================== */
+
+/* === BOTÃO FLUTUANTE DE ACESSIBILIDADE === */
+.accessibility-widget {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 10000;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+.accessibility-toggle {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.accessibility-toggle:hover,
+.accessibility-toggle:focus {
+  transform: scale(1.1);
+  box-shadow: 0 6px 25px rgba(102, 126, 234, 0.6);
+  outline: 3px solid #4dabf7;
+  outline-offset: 2px;
+}
+
+.accessibility-toggle:active {
+  transform: scale(0.95);
+}
+
+.accessibility-toggle::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.accessibility-toggle:hover::before {
+  width: 100%;
+  height: 100%;
+}
+
+/* === PAINEL DE CONTROLES === */
+.accessibility-panel {
+  position: absolute;
+  top: 70px;
+  right: 0;
+  width: 320px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 24px;
+  transform: translateX(calc(100% + 20px));
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.accessibility-panel.active {
+  transform: translateX(0);
+  opacity: 1;
+  visibility: visible;
+}
+
+.accessibility-header {
+  text-align: center;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.accessibility-header h3 {
+  margin: 0 0 8px 0;
+  color: #343a40;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.accessibility-header p {
+  margin: 0;
+  color: #6c757d;
+  font-size: 14px;
+}
+
+/* === GRUPOS DE CONTROLES === */
+.accessibility-group {
+  margin-bottom: 20px;
+}
+
+.accessibility-group:last-child {
+  margin-bottom: 0;
+}
+
+.group-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  color: #495057;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.group-title i {
+  color: #667eea;
+}
+
+/* === CONTROLES === */
+.accessibility-control {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  margin-bottom: 8px;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.accessibility-control:hover {
+  background: rgba(102, 126, 234, 0.05);
+  border-color: #667eea;
+}
+
+.control-info {
+  flex: 1;
+}
+
+.control-label {
+  display: block;
+  color: #343a40;
+  font-weight: 500;
+  margin-bottom: 2px;
+  font-size: 14px;
+}
+
+.control-description {
+  display: block;
+  color: #6c757d;
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+/* === TOGGLE SWITCH === */
+.toggle-switch {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  background: #dee2e6;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.toggle-switch:focus {
+  outline: 2px solid #4dabf7;
+  outline-offset: 2px;
+}
+
+.toggle-switch.active {
+  background: #667eea;
+}
+
+.toggle-switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  background: white;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.toggle-switch.active::after {
+  transform: translateX(20px);
+}
+
+/* === FONT SIZE CONTROLS === */
+.font-size-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.font-size-btn {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #dee2e6;
+  background: white;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  color: #495057;
+}
+
+.font-size-btn:hover,
+.font-size-btn:focus {
+  border-color: #667eea;
+  background: #667eea;
+  color: white;
+  outline: none;
+}
+
+.font-size-display {
+  min-width: 40px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: #495057;
+}
+
+/* === SELECT DROPDOWN === */
+.accessibility-select {
+  appearance: none;
+  background: white;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 8px 32px 8px 12px;
+  font-size: 14px;
+  color: #495057;
+  cursor: pointer;
+  width: 100%;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 16px;
+}
+
+.accessibility-select:focus {
+  outline: 2px solid #4dabf7;
+  outline-offset: -1px;
+  border-color: #667eea;
+}
+
+/* === CONTROLES DE VOZ === */
+.speech-controls-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(102, 126, 234, 0.05);
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.speech-control {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.speech-control .control-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #495057;
+  min-width: 70px;
+}
+
+.speech-control input[type="range"] {
+  flex: 1;
+  height: 6px;
+  background: #dee2e6;
+  border-radius: 3px;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.speech-control input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  background: #667eea;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.speech-control input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.2);
+}
+
+.speech-control input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  background: #667eea;
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.speech-control input[type="range"]:focus {
+  outline: 2px solid #4dabf7;
+  outline-offset: 2px;
+}
+
+.speech-control span[id$="-display"] {
+  font-size: 12px;
+  font-weight: 600;
+  color: #667eea;
+  min-width: 40px;
+  text-align: right;
+}
+
+.speech-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+.btn-small {
+  padding: 6px 12px;
+  font-size: 12px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 80px;
+  justify-content: center;
+}
+
+.btn-small i {
+  font-size: 10px;
+}
+
+/* Indicador visual quando a síntese de voz está ativa */
+.speech-active {
+  position: relative;
+}
+
+.speech-active::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  background: #22c55e;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.2);
+  }
+}
+
+/* Estilo para elementos sendo lidos */
+.being-read {
+  outline: 3px solid #fbbf24 !important;
+  outline-offset: 2px !important;
+  background: rgba(251, 191, 36, 0.1) !important;
+  border-radius: 4px !important;
+}
+
+/* === KEYBOARD SHORTCUTS INFO === */
+.shortcuts-info {
+  background: rgba(102, 126, 234, 0.1);
+  border: 1px solid rgba(102, 126, 234, 0.2);
+  border-radius: 12px;
+  padding: 16px;
+  margin-top: 16px;
+}
+
+.shortcuts-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.shortcut-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 12px;
+}
+
+.shortcut-key {
+  background: rgba(102, 126, 234, 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-weight: bold;
+  color: #667eea;
+}
+
+.shortcut-desc {
+  color: #6c757d;
+}
+
+/* === FILTROS DE DALTONISMO CIENTÍFICOS === */
+/* Baseado em pesquisa Brettel, Viénot, & Mollon (1997) e DaltonLens */
+
+/* Transições suaves para aplicação dos filtros */
+html {
+  transition: filter 0.3s ease-in-out;
+}
+
+/* ========== SIMULAÇÃO (para pessoas com visão normal) ========== */
+/* Mostram como uma pessoa com daltonismo veria o site */
+
+/* Protanopia - Simulação (ausência de cones L - vermelho) */
+html.simulate-protanopia {
+  filter: url('#protanopia-simulation');
+}
+
+/* Deuteranopia - Simulação (ausência de cones M - verde) */
+html.simulate-deuteranopia {
+  filter: url('#deuteranopia-simulation');
+}
+
+/* Tritanopia - Simulação (ausência de cones S - azul) */
+html.simulate-tritanopia {
+  filter: url('#tritanopia-simulation');
+}
+
+/* ========== CORREÇÃO (para pessoas com daltonismo) ========== */
+/* Ajudam pessoas com daltonismo a distinguir cores melhor */
+
+/* Protanopia - Correção para distinguir vermelho/verde */
+html.correct-protanopia {
+  filter: 
+    contrast(1.2) 
+    saturate(1.4) 
+    hue-rotate(5deg) 
+    brightness(1.05);
+}
+
+/* Deuteranopia - Correção para distinguir verde/vermelho */
+html.correct-deuteranopia {
+  filter: 
+    contrast(1.15) 
+    saturate(1.3) 
+    hue-rotate(-3deg) 
+    brightness(1.02);
+}
+
+/* Tritanopia - Correção para distinguir azul/amarelo */
+html.correct-tritanopia {
+  filter: 
+    contrast(1.25) 
+    saturate(1.5) 
+    hue-rotate(8deg) 
+    brightness(1.08);
+}
+
+/* ========== FALLBACKS CSS PARA SIMULAÇÃO ========== */
+/* Quando SVG não está disponível */
+
+@supports not (filter: url('#protanopia-simulation')) {
+  /* Protanopia Fallback - Remove componente vermelho */
+  html.simulate-protanopia {
+    filter: 
+      sepia(0.8) 
+      saturate(0.6) 
+      hue-rotate(15deg) 
+      contrast(1.1);
+  }
+  
+  /* Deuteranopia Fallback - Reduz componente verde */
+  html.simulate-deuteranopia {
+    filter: 
+      sepia(0.7) 
+      saturate(0.7) 
+      hue-rotate(-10deg) 
+      contrast(1.05);
+  }
+  
+  /* Tritanopia Fallback - Afeta canal azul */
+  html.simulate-tritanopia {
+    filter: 
+      sepia(0.6) 
+      saturate(0.8) 
+      hue-rotate(25deg) 
+      contrast(1.2);
+  }
+}
+
+/* Garantir que o widget de acessibilidade não seja afetado */
+.accessibility-widget {
+  filter: none !important;
+}
+
+/* Opção para usar filtros mais avançados baseados em matrizes (experimental) */
+@supports (filter: url('#matrix-filter')) {
+  html.colorblind-deuteranopia-advanced {
+    filter: url('#deuteranopia-matrix');
+  }
+  
+  html.colorblind-protanopia-advanced {
+    filter: url('#protanopia-matrix');
+  }
+  
+  html.colorblind-tritanopia-advanced {
+    filter: url('#tritanopia-matrix');
+  }
+}
+
+/* Debug: Indicador visual quando filtro está ativo */
+html[class*="colorblind-"]::before {
+  content: 'Filtro de Daltonismo Ativo';
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  background: rgba(255, 193, 7, 0.9);
+  color: #000;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: bold;
+  z-index: 10001;
+  pointer-events: none;
+  animation: fadeInOut 3s ease-in-out;
+}
+
+@keyframes fadeInOut {
+  0%, 100% { opacity: 0; }
+  10%, 90% { opacity: 1; }
+}
+
+/* === ÁREA DE TESTE DE DALTONISMO === */
+.colorblind-test-palette {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+}
+
+.test-color {
+  height: 40px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: white;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  transition: transform 0.2s ease;
+}
+
+.test-color:hover {
+  transform: scale(1.05);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+#toggle-test-area {
+  width: 100%;
+  margin-top: 8px;
+}
+
+/* === PAINEL EDUCATIVO DE DALTONISMO === */
+.colorblind-info-panel {
+  background: rgba(102, 126, 234, 0.08);
+  border: 1px solid rgba(102, 126, 234, 0.2);
+  border-radius: 12px;
+  padding: 16px;
+  margin: 8px 0;
+}
+
+.info-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.info-title i {
+  color: #667eea;
+}
+
+.info-content {
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.info-section {
+  margin-bottom: 12px;
+}
+
+.info-section:last-child {
+  margin-bottom: 0;
+}
+
+.info-section strong {
+  display: block;
+  color: #495057;
+  margin-bottom: 4px;
+  font-size: 12px;
+}
+
+.info-section p {
+  margin: 0;
+  color: #6c757d;
+  font-size: 11px;
+  line-height: 1.3;
+}
+
+/* === CONTROLES DE LIBRAS === */
+.libras-settings-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.libras-setting {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.libras-setting .control-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #495057;
+}
+
+.libras-setting .accessibility-select {
+  font-size: 13px;
+}
+
+.libras-info {
+  background: rgba(34, 197, 94, 0.08);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 12px;
+}
+
+.libras-info p {
+  margin: 0 0 8px 0;
+  font-size: 11px;
+  line-height: 1.4;
+  color: #059669;
+}
+
+.libras-info p:last-child {
+  margin-bottom: 0;
+}
+
+.libras-info strong {
+  color: #047857;
+  font-weight: 600;
+}
+
+/* === PERSONALIZAÇÃO DO WIDGET VLIBRAS === */
+div[vw] {
+  position: fixed !important;
+  z-index: 9999 !important;
+}
+
+div[vw] .vw-access-button {
+  border-radius: 50% !important;
+  transition: all 0.3s ease !important;
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%) !important;
+  border: none !important;
+  box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3) !important;
+}
+
+div[vw] .vw-access-button:hover {
+  transform: scale(1.1) !important;
+  box-shadow: 0 6px 20px rgba(34, 197, 94, 0.5) !important;
+}
+
+/* Classes de posicionamento */
+div[vw].position-bottom-right {
+  bottom: 20px !important;
+  right: 20px !important;
+  top: auto !important;
+  left: auto !important;
+}
+
+div[vw].position-bottom-left {
+  bottom: 20px !important;
+  left: 20px !important;
+  top: auto !important;
+  right: auto !important;
+}
+
+div[vw].position-top-right {
+  top: 20px !important;
+  right: 20px !important;
+  bottom: auto !important;
+  left: auto !important;
+}
+
+div[vw].position-top-left {
+  top: 20px !important;
+  left: 20px !important;
+  bottom: auto !important;
+  right: auto !important;
+}
+
+/* Classes de tamanho */
+div[vw] .vw-access-button.size-small {
+  width: 50px !important;
+  height: 50px !important;
+  font-size: 24px !important;
+}
+
+div[vw] .vw-access-button.size-medium {
+  width: 64px !important;
+  height: 64px !important;
+  font-size: 32px !important;
+}
+
+div[vw] .vw-access-button.size-large {
+  width: 80px !important;
+  height: 80px !important;
+  font-size: 40px !important;
+}
+
+/* Estilo do modal VLibras */
+div[vw] .vw-plugin-wrapper {
+  border-radius: 16px !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Ajustar quando estiver junto com nosso painel de acessibilidade */
+.accessibility-widget + div[vw].position-top-right {
+  top: 90px !important;
+}
+
+/* Responsividade para mobile */
+@media (max-width: 768px) {
+  div[vw].position-bottom-right,
+  div[vw].position-top-right {
+    right: 10px !important;
+  }
+  
+  div[vw].position-bottom-left,
+  div[vw].position-top-left {
+    left: 10px !important;
+  }
+  
+  div[vw] .vw-access-button.size-large {
+    width: 60px !important;
+    height: 60px !important;
+    font-size: 30px !important;
+  }
+}
+
+/* Indicadores de status do LIBRAS */
+.libras-active {
+  position: relative;
+}
+
+.libras-active::after {
+  content: '🤟';
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  font-size: 12px;
+  animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+}
+
+/* === ALTO CONTRASTE MELHORADO === */
+body.high-contrast {
+  /* Remove filtros globais que eram muito agressivos */
+  background: #0f172a !important; /* Usar a cor bg-dark do site */
+  color: #ffffff !important;
+}
+
+/* Variáveis CSS para alto contraste */
+body.high-contrast {
+  --text-primary: #ffffff !important;
+  --text-secondary: #e2e8f0 !important;
+  --text-light: #cbd5e1 !important;
+  --bg-primary: #0f172a !important;
+  --bg-secondary: #1e293b !important;
+  --bg-light: #334155 !important;
+  --primary: #4f46e5 !important; /* Manter roxo mais escuro para contraste */
+  --primary-light: #6366f1 !important;
+  --accent: #ec4899 !important; /* Manter rosa para contraste */
+  --success: #22c55e !important; /* Verde mais vibrante */
+  --warning: #fbbf24 !important; /* Amarelo mais forte */
+  --danger: #ef4444 !important;
+}
+
+/* Glass effects com alto contraste */
+body.high-contrast .glass-effect,
+body.high-contrast .glass-card {
+  background: rgba(30, 41, 59, 0.95) !important; /* Mais opaco */
+  backdrop-filter: none !important;
+  border: 2px solid #4f46e5 !important; /* Borda roxa */
+  color: #ffffff !important;
+  box-shadow: 0 8px 32px rgba(79, 70, 229, 0.3) !important;
+}
+
+/* Botões com alto contraste */
+body.high-contrast button,
+body.high-contrast .btn {
+  background: #4f46e5 !important; /* Roxo forte */
+  color: #ffffff !important;
+  border: 2px solid #6366f1 !important;
+  font-weight: 600 !important;
+}
+
+body.high-contrast button:hover,
+body.high-contrast .btn:hover,
+body.high-contrast button:focus,
+body.high-contrast .btn:focus {
+  background: #6366f1 !important;
+  color: #ffffff !important;
+  border-color: #818cf8 !important;
+  transform: scale(1.02) !important;
+}
+
+/* Botões secundários */
+body.high-contrast .btn-secondary {
+  background: #ec4899 !important;
+  border-color: #f472b6 !important;
+}
+
+body.high-contrast .btn-secondary:hover {
+  background: #f472b6 !important;
+  border-color: #f9a8d4 !important;
+}
+
+/* Links */
+body.high-contrast a {
+  color: #60a5fa !important; /* Azul claro */
+  text-decoration: underline !important;
+  text-decoration-thickness: 2px !important;
+  text-underline-offset: 4px !important;
+}
+
+body.high-contrast a:hover {
+  color: #93c5fd !important;
+  text-decoration-thickness: 3px !important;
+}
+
+/* Headers e navegação */
+body.high-contrast .header {
+  background: rgba(15, 23, 42, 0.98) !important;
+  border-bottom: 2px solid #4f46e5 !important;
+}
+
+body.high-contrast .nav-btn {
+  background: transparent !important;
+  color: #ffffff !important;
+  border: 1px solid #475569 !important;
+}
+
+body.high-contrast .nav-btn:hover,
+body.high-contrast .nav-btn.active {
+  background: #4f46e5 !important;
+  border-color: #6366f1 !important;
+}
+
+/* Inputs e formulários */
+body.high-contrast input,
+body.high-contrast select,
+body.high-contrast textarea {
+  background: #1e293b !important;
+  color: #ffffff !important;
+  border: 2px solid #475569 !important;
+}
+
+body.high-contrast input:focus,
+body.high-contrast select:focus,
+body.high-contrast textarea:focus {
+  border-color: #4f46e5 !important;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.3) !important;
+}
+
+/* Cards de pets */
+body.high-contrast .pet-card {
+  background: #1e293b !important;
+  border: 2px solid #475569 !important;
+  color: #ffffff !important;
+}
+
+body.high-contrast .pet-card:hover {
+  border-color: #4f46e5 !important;
+  box-shadow: 0 8px 32px rgba(79, 70, 229, 0.2) !important;
+}
+
+/* Stats e indicadores */
+body.high-contrast .stat-item {
+  background: #1e293b !important;
+  border: 2px solid #475569 !important;
+}
+
+body.high-contrast .stat-number {
+  color: #4f46e5 !important;
+  font-weight: 700 !important;
+}
+
+/* Modais */
+body.high-contrast .modal-content {
+  background: #0f172a !important;
+  border: 2px solid #4f46e5 !important;
+}
+
+/* Notificações */
+body.high-contrast .notification {
+  background: #1e293b !important;
+  border: 2px solid #4f46e5 !important;
+  color: #ffffff !important;
+}
+
+/* Remover efeitos que atrapalham legibilidade */
+body.high-contrast * {
+  text-shadow: none !important;
+  box-shadow: none !important;
+}
+
+body.high-contrast .glass-effect *,
+body.high-contrast .glass-card * {
+  box-shadow: none !important;
+}
+
+/* Ícones com melhor visibilidade */
+body.high-contrast i {
+  color: inherit !important;
+  opacity: 1 !important;
+}
+
+/* === TAMANHOS DE FONTE === */
+body.font-small {
+  font-size: 14px;
+}
+
+body.font-medium {
+  font-size: 16px;
+}
+
+body.font-large {
+  font-size: 18px;
+}
+
+body.font-extra-large {
+  font-size: 22px;
+}
+
+/* === ANIMAÇÕES REDUZIDAS === */
+body.reduce-motion *,
+body.reduce-motion *::before,
+body.reduce-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* Preservar animações importantes mesmo com redução de movimento */
+body.reduce-motion .hero-badge {
+  animation: pulse 2s infinite !important;
+  animation-duration: 2s !important;
+}
+
+/* Garantir que a animação do badge sempre funcione */
+.hero-badge {
+  animation: pulse 2s infinite !important;
+}
+
+/* Forçar a animação mesmo com filtros aplicados */
+html[class*="colorblind-"] .hero-badge,
+body[class*="font-"] .hero-badge,
+html .hero-badge {
+  animation: pulse 2s infinite !important;
+}
+
+/* Redefinir a animação caso tenha sido perdida */
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+  }
+}
+
+/* Animação mais sutil para alto contraste */
+body.high-contrast .hero-badge {
+  animation: pulse-contrast 2s infinite;
+}
+
+@keyframes pulse-contrast {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.4);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 10px rgba(79, 70, 229, 0);
+  }
+}
+
+/* === FOCUS INDICATORS APRIMORADOS === */
+body.enhanced-focus *:focus {
+  outline: 3px solid #4dabf7 !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 6px rgba(77, 171, 247, 0.3) !important;
+}
+
+/* === SKIP LINKS === */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 6px;
+  background: #000;
+  color: #fff;
+  padding: 8px;
+  text-decoration: none;
+  z-index: 10001;
+  border-radius: 4px;
+  font-weight: bold;
+}
+
+.skip-link:focus {
+  top: 6px;
+}
+
+/* === LIVE REGION PARA SCREEN READERS === */
+.sr-live-region {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+/* === RESPONSIVIDADE DO PAINEL === */
+@media (max-width: 768px) {
+  .accessibility-widget {
+    top: 10px;
+    right: 10px;
+  }
+  
+  .accessibility-toggle {
+    width: 50px;
+    height: 50px;
+    font-size: 20px;
+  }
+  
+  .accessibility-panel {
+    width: 280px;
+    top: 60px;
+    max-height: 70vh;
+  }
+}
+
+@media (max-width: 480px) {
+  .accessibility-panel {
+    width: calc(100vw - 20px);
+    right: -10px;
+    max-height: 60vh;
+  }
+}
+
+/* === FILTROS SVG PARA DALTONISMO === */
+.accessibility-filters {
+  position: absolute;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+/* === INDICADORES VISUAIS === */
+.accessibility-indicator {
+  position: fixed;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(102, 126, 234, 0.9);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 12px;
+  z-index: 9999;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.accessibility-indicator.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* === MELHORIAS DE ACESSIBILIDADE GERAL === */
+/* Melhor contraste para links */
+a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Indicador de foco melhorado para elementos interativos */
+button:focus,
+input:focus,
+select:focus,
+textarea:focus,
+a:focus {
+  outline: 2px solid #4dabf7;
+  outline-offset: 2px;
+}
+
+/* === PAINEL FECHADO MOBILE === */
+@media (max-width: 480px) {
+  .accessibility-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 100%;
+    height: 100vh;
+    border-radius: 0;
+    transform: translateX(100%);
+    max-height: none;
+    overflow-y: auto;
+  }
+  
+  .accessibility-panel.active {
+    transform: translateX(0);
+  }
+  
+  .accessibility-header {
+    padding-top: 60px;
+  }
+}

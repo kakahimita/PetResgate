@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🐾 PetResgate - Conectando Pets aos Seus Lares</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="accessibility.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -13,10 +14,10 @@
 <body>
 
     <!-- Header -->
-    <header class="header glass-effect">
+    <header class="header glass-effect" role="banner">
         <div class="container">
             <div class="logo">
-                <div class="logo-icon">
+                <div class="logo-icon" aria-hidden="true">
                     <i class="fas fa-paw"></i>
                 </div>
                 <div class="logo-text">
@@ -24,7 +25,7 @@
                     <p>Conectando pets aos seus lares</p>
                 </div>
             </div>
-            <nav class="nav">
+            <nav class="nav" role="navigation" aria-label="Navegação principal">
                 <button class="nav-btn" data-section="home">
                     <i class="fas fa-home"></i>
                     <span>Início</span>
@@ -56,9 +57,9 @@
     </header>
 
     <!-- Main Content -->
-    <main class="main">
+    <main class="main" id="main" role="main">
         <!-- ===== PÁGINA INICIAL ===== -->
-        <section id="home" class="section active">
+        <section id="home" class="section active" aria-labelledby="home-heading">
             <div class="container">
                 <!-- Hero Section -->
                 <div class="hero-wrapper">
@@ -798,7 +799,22 @@
         </button>
     </div>
 
+    <!-- VLibras Widget - LIBRAS para Acessibilidade -->
+    <div vw class="enabled">
+        <div vw-access-button class="active"></div>
+        <div vw-plugin-wrapper>
+            <div class="vw-plugin-top-wrapper"></div>
+        </div>
+    </div>
+
+    <script src="accessibility.js"></script>
     <script src="script.js"></script>
+    
+    <!-- VLibras Plugin -->
+    <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+    <script>
+        new window.VLibras.Widget('https://vlibras.gov.br/app');
+    </script>
 </body>
 
 </html>
