@@ -5,7 +5,7 @@ class AuthServiceMongoDB {
     this.dbService = dbService;
   }
 
-  async cadastrar(nome, email, senha) {
+  async cadastrar(nome, email, senha, dadosExtras = {}) {
     try {
       // Verificar se já existe usuário com esse email
       const existingUser = await this.dbService.findOne('Usuario', { email });
@@ -14,15 +14,33 @@ class AuthServiceMongoDB {
         return { success: false, message: "Email já cadastrado." };
       }
 
-      // Criar novo usuário no MongoDB
-      const novoUsuarioMongo = await this.dbService.create('Usuario', {
+      // Criar novo usuário no MongoDB com campos expandidos
+      const dadosUsuario = {
         nome,
         email,
-        senha
-      });
+        senha,
+        whatsapp: dadosExtras.whatsapp || '',
+        descricao: dadosExtras.descricao || '',
+        endereco: {
+          rua: dadosExtras.endereco?.rua || '',
+          bairro: dadosExtras.endereco?.bairro || '',
+          cidade: dadosExtras.endereco?.cidade || '',
+          estado: dadosExtras.endereco?.estado || ''
+        },
+        redesSociais: {
+          facebook: dadosExtras.redesSociais?.facebook || '',
+          instagram: dadosExtras.redesSociais?.instagram || '',
+          twitter: dadosExtras.redesSociais?.twitter || ''
+        },
+        dataCadastro: new Date(),
+        ultimoLogin: new Date(),
+        petsRegistrados: []
+      };
+
+      const novoUsuarioMongo = await this.dbService.create('Usuario', dadosUsuario);
 
       // Criar instância do modelo para compatibilidade
-      const novoUsuario = new Usuario(nome, email, senha);
+      const novoUsuario = new Usuario(nome, email, senha, dadosExtras);
       novoUsuario.id = novoUsuarioMongo._id.toString();
 
       return {
@@ -44,8 +62,24 @@ class AuthServiceMongoDB {
       });
 
       if (usuarioMongo) {
-        const usuarioLogado = new Usuario(usuarioMongo.nome, usuarioMongo.email, usuarioMongo.senha);
+        // Criar instância com todos os dados expandidos
+        const dadosExtras = {
+          whatsapp: usuarioMongo.whatsapp,
+          descricao: usuarioMongo.descricao,
+          endereco: usuarioMongo.endereco,
+          redesSociais: usuarioMongo.redesSociais,
+          dataCadastro: usuarioMongo.dataCadastro,
+          ultimoLogin: usuarioMongo.ultimoLogin
+        };
+        
+        const usuarioLogado = new Usuario(usuarioMongo.nome, usuarioMongo.email, usuarioMongo.senha, dadosExtras);
         usuarioLogado.id = usuarioMongo._id.toString();
+        usuarioLogado.petsRegistrados = usuarioMongo.petsRegistrados || [];
+        
+        // Atualizar último login
+        await this.dbService.updateById('Usuario', usuarioMongo._id, { 
+          ultimoLogin: new Date() 
+        });
         
         return {
           success: true,
@@ -93,14 +127,59 @@ class AuthServiceMongoDB {
     }
   }
 
+  // Método para atualizar perfil do usuário
+  async atualizarPerfil(userId, dadosNovos) {
+    try {
+      const dadosUpdate = {};
+      
+      if (dadosNovos.nome) dadosUpdate.nome = dadosNovos.nome;
+      if (dadosNovos.whatsapp !== undefined) dadosUpdate.whatsapp = dadosNovos.whatsapp;
+      if (dadosNovos.descricao !== undefined) dadosUpdate.descricao = dadosNovos.descricao;
+      
+      if (dadosNovos.endereco) {
+        dadosUpdate.endereco = dadosNovos.endereco;
+      }
+      
+      if (dadosNovos.redesSociais) {
+        dadosUpdate.redesSociais = dadosNovos.redesSociais;
+      }
+      
+      dadosUpdate.ultimoLogin = new Date();
+      
+      const usuarioAtualizado = await this.dbService.updateById('Usuario', userId, dadosUpdate);
+      
+      if (usuarioAtualizado) {
+        return {
+          success: true,
+          message: "Perfil atualizado com sucesso!",
+          usuario: usuarioAtualizado
+        };
+      }
+      
+      return { success: false, message: "Erro ao atualizar perfil." };
+    } catch (error) {
+      console.error("Erro ao atualizar perfil:", error);
+      return { success: false, message: "Erro ao atualizar perfil." };
+    }
+  }
+
   // Método para listar todos os usuários (para compatibilidade com testes)
   async listarTodosUsuarios() {
     try {
       const usuariosMongo = await this.dbService.find('Usuario');
       
       return usuariosMongo.map(usuarioMongo => {
-        const usuario = new Usuario(usuarioMongo.nome, usuarioMongo.email, usuarioMongo.senha);
+        const dadosExtras = {
+          whatsapp: usuarioMongo.whatsapp,
+          descricao: usuarioMongo.descricao,
+          endereco: usuarioMongo.endereco,
+          redesSociais: usuarioMongo.redesSociais,
+          dataCadastro: usuarioMongo.dataCadastro,
+          ultimoLogin: usuarioMongo.ultimoLogin
+        };
+        const usuario = new Usuario(usuarioMongo.nome, usuarioMongo.email, usuarioMongo.senha, dadosExtras);
         usuario.id = usuarioMongo._id.toString();
+        usuario.petsRegistrados = usuarioMongo.petsRegistrados || [];
         return usuario;
       });
     } catch (error) {

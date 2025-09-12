@@ -1155,6 +1155,7 @@ body {
 .form-floating input:not(:placeholder-shown) + label,
 .form-floating select:focus + label,
 .form-floating select:valid + label,
+.form-floating select[data-selected] + label,
 .form-floating textarea:focus + label,
 .form-floating textarea:not(:placeholder-shown) + label {
     top: 0.25rem;
@@ -1409,6 +1410,324 @@ body {
 
 .form-floating.full-width {
     grid-column: 1 / -1;
+}
+
+/* === CORREÇÃO DE SELECT FIELDS === */
+.form-floating select {
+    position: relative;
+    z-index: 1;
+    background: white;
+    cursor: pointer;
+}
+
+.form-floating select:focus {
+    z-index: 10;
+    position: relative;
+}
+
+/* Corrigir problema do dropdown do select */
+.form-floating select option {
+    background: white;
+    color: var(--text-dark);
+    padding: 0.5rem;
+}
+
+/* Garantir que o dropdown apareça por cima de outros elementos */
+.form-floating {
+    z-index: auto;
+}
+
+.form-floating:focus-within {
+    z-index: 10;
+    position: relative;
+}
+
+/* Estilos específicos para select no Safari/WebKit */
+.form-floating select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: 
+        linear-gradient(45deg, transparent 50%, var(--text-secondary) 50%),
+        linear-gradient(135deg, var(--text-secondary) 50%, transparent 50%);
+    background-position: 
+        calc(100% - 20px) calc(1em + 2px),
+        calc(100% - 15px) calc(1em + 2px);
+    background-size: 
+        5px 5px,
+        5px 5px;
+    background-repeat: no-repeat;
+}
+
+.form-floating select:focus {
+    background-image: 
+        linear-gradient(45deg, transparent 50%, var(--primary) 50%),
+        linear-gradient(135deg, var(--primary) 50%, transparent 50%);
+}
+
+/* === MELHORIAS MOBILE PARA SELECT === */
+@media (max-width: 768px) {
+    .form-floating select {
+        font-size: 16px; /* Previne zoom no iOS */
+        min-height: 50px; /* Melhora área de toque */
+    }
+    
+    .form-floating select option {
+        padding: 1rem 0.5rem;
+        font-size: 16px;
+    }
+}
+
+/* === ESTADOS ESPECÍFICOS PARA VALIDAÇÃO DO SELECT === */
+.form-floating select:invalid {
+    border-color: rgba(239, 68, 68, 0.5);
+}
+
+.form-floating select:valid:not(:placeholder-shown) {
+    border-color: rgba(34, 197, 94, 0.5);
+}
+
+/* === HOVER STATES === */
+.form-floating select:hover:not(:focus) {
+    border-color: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.98);
+}
+
+/* === CORRIGIR PROBLEMA DE OVERLAY === */
+.form-wrapper {
+    position: relative;
+    z-index: 1;
+}
+
+.form-section {
+    position: relative;
+    z-index: auto;
+}
+
+/* Garantir que modais fiquem por cima */
+.modal {
+    z-index: 999;
+}
+
+.modal-content {
+    z-index: 1000;
+}
+
+/* === CUSTOM DROPDOWN REDESENHADO === */
+.custom-select-wrapper {
+    position: relative;
+    width: 100%;
+    display: block;
+    min-width: 0;
+}
+
+.custom-select-display {
+    width: 100%;
+    padding: 1rem 1rem 0.5rem;
+    border: 2px solid transparent;
+    border-radius: var(--border-radius);
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    color: var(--text-dark);
+    font-size: 1rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    min-height: 58px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Seta elegante usando FontAwesome style */
+.custom-select-display::after {
+    content: '';
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 6px solid var(--text-secondary);
+    transition: all 0.3s ease;
+}
+
+.custom-select-wrapper.focused .custom-select-display::after {
+    transform: translateY(-50%) rotate(180deg);
+    border-top-color: var(--primary);
+}
+
+/* Estados visuais melhorados */
+.custom-select-wrapper.empty-state .custom-select-display {
+    color: #9ca3af;
+}
+
+.custom-select-wrapper.has-value .custom-select-display {
+    color: var(--text-dark);
+    font-weight: 500;
+}
+
+/* Hover e focus states elegantes */
+.custom-select-display:hover {
+    border-color: rgba(59, 130, 246, 0.2);
+    background: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
+}
+
+.custom-select-wrapper.focused .custom-select-display {
+    border-color: var(--primary);
+    background: white;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1), 0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-1px);
+}
+
+/* Dropdown redesenhado com glassmorphism */
+.custom-select-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--border-radius);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.1);
+    z-index: 1000;
+    max-height: 200px;
+    overflow-y: auto;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-20px) scale(0.95);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.custom-select-dropdown.open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+}
+
+/* Scroll personalizado para o dropdown */
+.custom-select-dropdown::-webkit-scrollbar {
+    width: 6px;
+}
+
+.custom-select-dropdown::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 3px;
+}
+
+.custom-select-dropdown::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+}
+
+.custom-select-dropdown::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.4);
+}
+
+/* Opções com design moderno */
+.custom-select-option {
+    padding: 0.875rem 1rem;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    color: var(--text-dark);
+    font-weight: 500;
+    position: relative;
+    backdrop-filter: blur(10px);
+}
+
+.custom-select-option::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 0;
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary), var(--primary-light, #60a5fa));
+    transition: width 0.3s ease;
+}
+
+.custom-select-option:hover {
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--primary);
+    transform: translateX(4px);
+}
+
+.custom-select-option:hover::before {
+    width: 3px;
+}
+
+.custom-select-option:active {
+    background: rgba(59, 130, 246, 0.2);
+    transform: translateX(2px);
+}
+
+/* === LABEL REDESENHADO PARA INTEGRAÇÃO === */
+.form-floating .custom-select-wrapper + label {
+    position: absolute;
+    left: 1rem;
+    top: 1rem;
+    color: #9ca3af;
+    font-size: 1rem;
+    font-weight: 400;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
+    background: transparent;
+    z-index: 5;
+    transform-origin: left top;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: calc(100% - 2rem);
+}
+
+.form-floating .custom-select-wrapper.has-value + label,
+.form-floating .custom-select-wrapper.focused + label {
+    top: 0.25rem;
+    font-size: 0.75rem;
+    color: var(--primary);
+    font-weight: 600;
+    background: white;
+    padding: 0 0.5rem;
+    border-radius: 4px;
+    transform: translateY(-2px);
+}
+
+.form-floating .custom-select-wrapper:not(.has-value):not(.focused) + label {
+    color: #9ca3af;
+}
+
+/* === INTEGRAÇÃO COM FORM-GRID === */
+.form-grid .form-floating .custom-select-wrapper {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+.form-floating .custom-select-wrapper {
+    contain: layout;
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 768px) {
+    .custom-select-display,
+    .custom-select-option {
+        font-size: 16px;
+        min-height: 50px;
+        padding: 1rem;
+    }
+    
+    .custom-select-dropdown {
+        max-height: 150px;
+    }
 }
 
 /* === AUTH === */
@@ -1849,5 +2168,564 @@ body {
 
     .slide-content {
         padding: var(--space-lg);
+    }
+}
+
+/* === PERFIL EXPANDIDO === */
+.profile-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-xl);
+    padding-bottom: var(--space-lg);
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.profile-info {
+    flex: 1;
+    margin-left: var(--space-lg);
+}
+
+.profile-stats {
+    margin-top: var(--space-sm);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+.profile-completion {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.completion-bar {
+    width: 150px;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.completion-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    background: linear-gradient(90deg, #ef4444, #f97316);
+}
+
+.completion-fill.medium {
+    background: linear-gradient(90deg, #f97316, #eab308);
+}
+
+.completion-fill.high {
+    background: linear-gradient(90deg, #22c55e, #16a34a);
+}
+
+.profile-actions {
+    display: flex;
+    gap: var(--space-sm);
+}
+
+/* === DICA DE PERFIL === */
+.profile-tip {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding: var(--space-md);
+    margin-bottom: var(--space-lg);
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    border-radius: var(--border-radius);
+    position: relative;
+}
+
+.tip-icon {
+    color: var(--primary);
+    font-size: 1.5rem;
+}
+
+.tip-content h4 {
+    color: var(--text-primary);
+    margin: 0 0 var(--space-xs) 0;
+}
+
+.tip-content p {
+    color: var(--text-secondary);
+    margin: var(--space-xs) 0;
+    font-size: 0.9rem;
+}
+
+.tip-close {
+    position: absolute;
+    top: var(--space-sm);
+    right: var(--space-sm);
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: var(--space-xs);
+}
+
+/* === ABAS DO PERFIL === */
+.profile-tabs {
+    display: flex;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: var(--border-radius);
+    padding: 4px;
+    margin-bottom: var(--space-xl);
+}
+
+.profile-tab {
+    flex: 1;
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    padding: var(--space-md);
+    border-radius: calc(var(--border-radius) - 4px);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-xs);
+    font-weight: 500;
+}
+
+.profile-tab:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+}
+
+.profile-tab.active {
+    background: var(--primary);
+    color: white;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+.profile-tab i {
+    font-size: 1rem;
+}
+
+/* === CONTEÚDO DAS ABAS === */
+.profile-content {
+    position: relative;
+}
+
+.tab-content {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.profile-sections {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.profile-section {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--border-radius);
+    padding: var(--space-lg);
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+.profile-section:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.section-title {
+    color: var(--text-primary);
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0 0 var(--space-md) 0;
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.section-title i {
+    color: var(--primary);
+    font-size: 1rem;
+}
+
+/* === INFO GRID MELHORADO === */
+.info-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-sm);
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-md);
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--border-radius-sm);
+    transition: all 0.3s ease;
+    position: relative;
+    min-height: 60px;
+}
+
+.info-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+}
+
+.info-item label {
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: var(--space-xs);
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+}
+
+.info-item label::before {
+    content: '';
+    width: 3px;
+    height: 12px;
+    background: var(--primary);
+    border-radius: 2px;
+}
+
+.info-item span {
+    color: var(--text-primary);
+    font-weight: 500;
+    font-size: 1rem;
+    line-height: 1.4;
+}
+
+.info-item .editable-field {
+    min-height: 24px;
+    display: flex;
+    align-items: center;
+}
+
+.info-item .editable-field:empty::before {
+    content: '-';
+    color: var(--text-secondary);
+    opacity: 0.7;
+}
+
+/* === ESTILOS PARA REDES SOCIAIS === */
+.info-item[data-social] label::before {
+    background: linear-gradient(135deg, #405de6, #5851db, #833ab4, #c13584, #e1306c, #fd1d1d);
+}
+
+.info-item[data-social="instagram"] label::before {
+    background: linear-gradient(135deg, #405de6, #5851db, #833ab4, #c13584, #e1306c, #fd1d1d);
+}
+
+.info-item[data-social="facebook"] label::before {
+    background: #1877f2;
+}
+
+.info-item[data-social="twitter"] label::before {
+    background: #1da1f2;
+}
+
+.info-item[data-contact] label::before {
+    background: #25d366;
+}
+
+/* === REDES SOCIAIS === */
+.social-links {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+.social-link {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm);
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: var(--border-radius-sm);
+    transition: all 0.3s ease;
+}
+
+.social-link:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateX(4px);
+}
+
+.social-link i {
+    color: var(--primary);
+    font-size: 1.2rem;
+    width: 20px;
+}
+
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-xl);
+    color: var(--text-secondary);
+    text-align: center;
+}
+
+.empty-state i {
+    font-size: 2rem;
+    opacity: 0.5;
+}
+
+/* === DESCRIÇÃO DO PERFIL === */
+.profile-description p {
+    color: var(--text-primary);
+    line-height: 1.6;
+    margin: 0;
+}
+
+.profile-description .empty-text {
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+/* === ESTATÍSTICAS === */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-lg);
+}
+
+.stat-card {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding: var(--space-lg);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--border-radius);
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.stat-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    background: var(--primary);
+    color: white;
+    border-radius: var(--border-radius);
+    font-size: 1.2rem;
+}
+
+.stat-content h4 {
+    color: var(--text-primary);
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.stat-content p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin: var(--space-xs) 0 0 0;
+}
+
+/* === EDIÇÃO INLINE === */
+.editable-input {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--border-radius-sm);
+    color: var(--text-primary);
+    padding: var(--space-sm);
+    font-size: 0.9rem;
+    min-width: 200px;
+    transition: all 0.3s ease;
+}
+
+.editable-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.editable-textarea {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--border-radius-sm);
+    color: var(--text-primary);
+    padding: var(--space-sm);
+    font-size: 0.9rem;
+    width: 100%;
+    resize: vertical;
+    min-height: 80px;
+    font-family: inherit;
+    transition: all 0.3s ease;
+}
+
+.editable-textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.editable-field {
+    transition: all 0.3s ease;
+}
+
+.info-item {
+    position: relative;
+    align-items: flex-start;
+    min-height: 40px;
+}
+
+/* === VALIDAÇÃO E FEEDBACK VISUAL === */
+.validation-error {
+    color: #ef4444;
+    font-size: 0.75rem;
+    margin-top: var(--space-xs);
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+}
+
+.validation-error::before {
+    content: '⚠';
+    font-size: 0.8rem;
+}
+
+.editable-input.error, .editable-textarea.error {
+    border-color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+}
+
+.editable-input.success, .editable-textarea.success {
+    border-color: #22c55e;
+    background: rgba(34, 197, 94, 0.1);
+    box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
+}
+
+/* === CONTADOR DE CARACTERES === */
+.char-counter {
+    text-align: right;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-top: var(--space-xs);
+    opacity: 0.8;
+}
+
+.char-counter.warning {
+    color: #f59e0b;
+}
+
+.char-counter.danger {
+    color: #ef4444;
+}
+
+/* === MELHORIAS NOS INPUTS === */
+.editable-input, .editable-textarea {
+    width: 100%;
+    margin-top: var(--space-xs);
+}
+
+.editable-input:not(:placeholder-shown), .editable-textarea:not(:placeholder-shown) {
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* === LOADING STATE === */
+.profile-section.saving {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.profile-section.saving::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--primary);
+    border-top: 2px solid transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    transform: translate(-50%, -50%);
+}
+
+@keyframes spin {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* === RESPONSIVIDADE DO PERFIL === */
+@media (max-width: 768px) {
+    .profile-header {
+        flex-direction: column;
+        gap: var(--space-md);
+    }
+    
+    .profile-actions {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .profile-tabs {
+        flex-direction: column;
+    }
+    
+    .profile-tab {
+        justify-content: flex-start;
+    }
+    
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .profile-tip {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .completion-bar {
+        width: 100%;
+        max-width: 200px;
+    }
+    
+    .profile-completion {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .form-actions {
+        flex-direction: column-reverse;
+    }
+    
+    .form-actions .btn {
+        width: 100%;
     }
 }

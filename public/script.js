@@ -720,8 +720,7 @@ function updateUIForLoggedUser() {
         if (loginContainer) loginContainer.style.display = 'none';
         if (profileContainer) {
             profileContainer.style.display = 'block';
-            document.getElementById('profile-name').textContent = currentUser.nome;
-            document.getElementById('profile-email').textContent = currentUser.email;
+            updateProfileDisplay();
             loadUserPets();
         }
     } else {
@@ -1298,6 +1297,755 @@ styleSheet.textContent = dynamicStyles;
 document.head.appendChild(styleSheet);
 
 // === EXPOSIÇÃO DE FUNÇÕES GLOBAIS ===
+// === FUNCIONALIDADES DO PERFIL EXPANDIDO ===
+
+// Variável para controlar modo de edição
+let isEditingProfile = false;
+
+// Atualizar exibição do perfil com os novos campos
+function updateProfileDisplay() {
+    if (!currentUser) return;
+    
+    // Dados básicos
+    document.getElementById('profile-name').textContent = currentUser.nome || '';
+    document.getElementById('profile-email').textContent = currentUser.email || '';
+    document.getElementById('profile-email-display').textContent = currentUser.email || '';
+    
+    // Data de cadastro
+    if (currentUser.dataCadastro) {
+        const dataFormatada = new Date(currentUser.dataCadastro).toLocaleDateString('pt-BR', {
+            month: 'short',
+            year: 'numeric'
+        });
+        document.getElementById('profile-member-since').textContent = `Membro desde: ${dataFormatada}`;
+    }
+    
+    // Informações de contato
+    document.getElementById('profile-whatsapp').textContent = currentUser.whatsapp || '-';
+    
+    // Endereço
+    document.getElementById('profile-endereco-rua').textContent = currentUser.endereco?.rua || '-';
+    document.getElementById('profile-bairro').textContent = currentUser.endereco?.bairro || '-';
+    document.getElementById('profile-cidade').textContent = currentUser.endereco?.cidade || '-';
+    document.getElementById('profile-estado').textContent = currentUser.endereco?.estado || '-';
+    
+    // Redes sociais
+    document.getElementById('profile-instagram').textContent = currentUser.redesSociais?.instagram || '-';
+    document.getElementById('profile-facebook').textContent = currentUser.redesSociais?.facebook || '-';
+    document.getElementById('profile-twitter').textContent = currentUser.redesSociais?.twitter || '-';
+    
+    // Descrição
+    updateProfileDescription();
+    
+    // Completude do perfil
+    updateProfileCompletion();
+    
+    // Estatísticas
+    updateUserStats();
+}
+
+
+// Atualizar descrição do perfil
+function updateProfileDescription() {
+    const descricaoElement = document.getElementById('profile-descricao');
+    if (currentUser.descricao && currentUser.descricao.trim()) {
+        descricaoElement.innerHTML = `<p>${currentUser.descricao}</p>`;
+    } else {
+        descricaoElement.innerHTML = '<p class="empty-text">Nenhuma descrição cadastrada</p>';
+    }
+}
+
+// Atualizar completude do perfil
+function updateProfileCompletion() {
+    if (!currentUser.calcularCompletudeProfile) {
+        // Função simples para calcular completude se o método não existir
+        let campos = 3; // nome, email, senha
+        let preenchidos = 3;
+        
+        campos += 7; // whatsapp, descricao, bairro, cidade, facebook, instagram, twitter
+        if (currentUser.whatsapp) preenchidos++;
+        if (currentUser.descricao) preenchidos++;
+        if (currentUser.endereco?.bairro) preenchidos++;
+        if (currentUser.endereco?.cidade) preenchidos++;
+        if (currentUser.redesSociais?.facebook) preenchidos++;
+        if (currentUser.redesSociais?.instagram) preenchidos++;
+        if (currentUser.redesSociais?.twitter) preenchidos++;
+        
+        currentUser.completude = Math.round((preenchidos / campos) * 100);
+    } else {
+        currentUser.completude = currentUser.calcularCompletudeProfile();
+    }
+    
+    const progressBar = document.getElementById('completion-progress');
+    const completionText = document.getElementById('completion-text');
+    const profileTip = document.getElementById('profile-tip');
+    
+    progressBar.style.width = `${currentUser.completude}%`;
+    completionText.textContent = `Perfil ${currentUser.completude}% completo`;
+    
+    // Adicionar classes de cor baseado na completude
+    progressBar.className = 'completion-fill';
+    if (currentUser.completude >= 70) {
+        progressBar.classList.add('high');
+    } else if (currentUser.completude >= 40) {
+        progressBar.classList.add('medium');
+    } else {
+        progressBar.classList.add('low');
+    }
+    
+    // Mostrar dica se perfil não está completo
+    if (currentUser.completude < 70) {
+        showProfileTip();
+    }
+}
+
+// Mostrar dica de completude
+function showProfileTip() {
+    const profileTip = document.getElementById('profile-tip');
+    const missingFields = [];
+    
+    if (!currentUser.whatsapp) missingFields.push('WhatsApp');
+    if (!currentUser.descricao) missingFields.push('Descrição');
+    if (!currentUser.endereco?.bairro) missingFields.push('Bairro');
+    if (!currentUser.endereco?.cidade) missingFields.push('Cidade');
+    
+    if (missingFields.length > 0) {
+        document.getElementById('tip-missing-fields').textContent = `Faltam: ${missingFields.join(', ')}`;
+        profileTip.style.display = 'block';
+    }
+}
+
+// Fechar dica
+function closeTip() {
+    document.getElementById('profile-tip').style.display = 'none';
+}
+
+// Atualizar estatísticas do usuário
+function updateUserStats() {
+    const petsCount = currentUser.petsRegistrados ? currentUser.petsRegistrados.length : 0;
+    document.getElementById('user-pets-count').textContent = petsCount;
+    
+    // Calcular dias como membro
+    if (currentUser.dataCadastro) {
+        const hoje = new Date();
+        const cadastro = new Date(currentUser.dataCadastro);
+        const diasMembro = Math.floor((hoje - cadastro) / (1000 * 60 * 60 * 24));
+        document.getElementById('user-days-member').textContent = diasMembro;
+    }
+    
+    // TODO: Implementar contagem de reencontros quando essa funcionalidade for adicionada
+    document.getElementById('user-reunions-count').textContent = '0';
+}
+
+// === NAVEGAÇÃO ENTRE ABAS DO PERFIL ===
+function setupProfileTabs() {
+    const tabs = document.querySelectorAll('.profile-tab');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const targetTab = tab.dataset.tab;
+            
+            // Remover classe active de todas as abas
+            tabs.forEach(t => t.classList.remove('active'));
+            tabContents.forEach(content => content.classList.remove('active'));
+            
+            // Ativar aba selecionada
+            tab.classList.add('active');
+            document.getElementById(`tab-${targetTab}`).classList.add('active');
+        });
+    });
+}
+
+// === EDIÇÃO INLINE DO PERFIL ===
+function toggleProfileEdit() {
+    const editBtn = document.getElementById('edit-profile-btn');
+    const saveBtn = document.getElementById('save-profile-btn');
+    const cancelBtn = document.getElementById('cancel-edit-btn');
+    
+    if (!isEditingProfile) {
+        // Entrar no modo de edição
+        isEditingProfile = true;
+        editBtn.style.display = 'none';
+        saveBtn.style.display = 'inline-flex';
+        cancelBtn.style.display = 'inline-flex';
+        
+        showEditFields();
+        fillEditFields();
+    } else {
+        // Sair do modo de edição
+        isEditingProfile = false;
+        editBtn.style.display = 'inline-flex';
+        saveBtn.style.display = 'none';
+        cancelBtn.style.display = 'none';
+        
+        hideEditFields();
+    }
+}
+
+function showEditFields() {
+    // Esconder spans e mostrar inputs
+    const editableFields = document.querySelectorAll('.editable-field');
+    const editableInputs = document.querySelectorAll('.editable-input, .editable-textarea');
+    
+    editableFields.forEach(field => {
+        field.style.display = 'none';
+    });
+    
+    editableInputs.forEach(input => {
+        input.style.display = input.tagName === 'TEXTAREA' ? 'block' : 'inline-block';
+    });
+    
+    // Mostrar contador de caracteres para textarea
+    const charCounter = document.getElementById('descricao-counter');
+    if (charCounter) {
+        charCounter.style.display = 'block';
+    }
+    
+    // Configurar event listeners para validação em tempo real
+    setupValidationListeners();
+}
+
+function hideEditFields() {
+    // Mostrar spans e esconder inputs
+    const editableFields = document.querySelectorAll('.editable-field');
+    const editableInputs = document.querySelectorAll('.editable-input, .editable-textarea');
+    
+    editableFields.forEach(field => {
+        field.style.display = '';
+    });
+    
+    editableInputs.forEach(input => {
+        input.style.display = 'none';
+        // Limpar classes de validação
+        input.classList.remove('error', 'success');
+    });
+    
+    // Esconder contador de caracteres
+    const charCounter = document.getElementById('descricao-counter');
+    if (charCounter) {
+        charCounter.style.display = 'none';
+    }
+    
+    // Esconder mensagens de erro
+    document.querySelectorAll('.validation-error').forEach(error => {
+        error.style.display = 'none';
+    });
+}
+
+function fillEditFields() {
+    if (!currentUser) return;
+    
+    document.getElementById('edit-whatsapp').value = currentUser.whatsapp || '';
+    document.getElementById('edit-endereco-rua').value = currentUser.endereco?.rua || '';
+    document.getElementById('edit-endereco-bairro').value = currentUser.endereco?.bairro || '';
+    document.getElementById('edit-endereco-cidade').value = currentUser.endereco?.cidade || '';
+    document.getElementById('edit-endereco-estado').value = currentUser.endereco?.estado || '';
+    document.getElementById('edit-instagram').value = currentUser.redesSociais?.instagram || '';
+    document.getElementById('edit-facebook').value = currentUser.redesSociais?.facebook || '';
+    document.getElementById('edit-twitter').value = currentUser.redesSociais?.twitter || '';
+    document.getElementById('edit-descricao').value = currentUser.descricao || '';
+}
+
+async function saveProfileChanges() {
+    // Validar todos os campos antes de salvar
+    if (!validateAllFields()) {
+        showNotification('Por favor, corrija os erros nos campos destacados.', 'error');
+        return;
+    }
+    
+    const saveBtn = document.getElementById('save-profile-btn');
+    const originalText = saveBtn.innerHTML;
+    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
+    saveBtn.disabled = true;
+    
+    // Adicionar classe de loading na seção
+    document.querySelectorAll('.profile-section').forEach(section => {
+        section.classList.add('saving');
+    });
+    
+    try {
+        const dadosNovos = {
+            whatsapp: document.getElementById('edit-whatsapp').value,
+            descricao: document.getElementById('edit-descricao').value,
+            endereco: {
+                rua: document.getElementById('edit-endereco-rua').value,
+                bairro: document.getElementById('edit-endereco-bairro').value,
+                cidade: document.getElementById('edit-endereco-cidade').value,
+                estado: document.getElementById('edit-endereco-estado').value
+            },
+            redesSociais: {
+                instagram: document.getElementById('edit-instagram').value,
+                facebook: document.getElementById('edit-facebook').value,
+                twitter: document.getElementById('edit-twitter').value
+            }
+        };
+        
+        const response = await fetch(`${API_BASE}/usuario/${currentUser.id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(dadosNovos)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Atualizar dados do usuário atual
+            Object.assign(currentUser, dadosNovos);
+            sessionStorage.setItem('petresgate_user', JSON.stringify(currentUser));
+            
+            updateProfileDisplay();
+            toggleProfileEdit(); // Sair do modo de edição
+            showNotification('Perfil atualizado com sucesso!', 'success');
+        } else {
+            showNotification(result.message || 'Erro ao atualizar perfil', 'error');
+        }
+    } catch (error) {
+        console.error('Erro ao atualizar perfil:', error);
+        showNotification('Erro ao atualizar perfil', 'error');
+    } finally {
+        saveBtn.innerHTML = originalText;
+        saveBtn.disabled = false;
+        
+        // Remover classe de loading
+        document.querySelectorAll('.profile-section').forEach(section => {
+            section.classList.remove('saving');
+        });
+    }
+}
+
+function cancelProfileEdit() {
+    toggleProfileEdit();
+    // Restaurar valores originais nos campos
+    fillEditFields();
+}
+
+// === VALIDAÇÃO E MÁSCARAS DE INPUT ===
+function setupValidationListeners() {
+    // WhatsApp com máscara e validação
+    const whatsappInput = document.getElementById('edit-whatsapp');
+    if (whatsappInput) {
+        whatsappInput.addEventListener('input', function(e) {
+            // Aplicar máscara de telefone
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length <= 11) {
+                if (value.length <= 2) {
+                    value = value.replace(/(\d{0,2})/, '($1');
+                } else if (value.length <= 6) {
+                    value = value.replace(/(\d{2})(\d{0,4})/, '($1) $2');
+                } else if (value.length <= 10) {
+                    value = value.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3');
+                } else {
+                    value = value.replace(/(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3');
+                }
+            }
+            e.target.value = value;
+            
+            // Validar formato
+            validateWhatsApp(e.target);
+        });
+    }
+    
+    // Redes sociais com validação
+    const instagramInput = document.getElementById('edit-instagram');
+    if (instagramInput) {
+        instagramInput.addEventListener('input', function(e) {
+            formatSocialMedia(e.target);
+            validateSocialMedia(e.target, 'instagram');
+        });
+    }
+    
+    const facebookInput = document.getElementById('edit-facebook');
+    if (facebookInput) {
+        facebookInput.addEventListener('input', function(e) {
+            formatSocialMedia(e.target);
+            validateSocialMedia(e.target, 'facebook');
+        });
+    }
+    
+    const twitterInput = document.getElementById('edit-twitter');
+    if (twitterInput) {
+        twitterInput.addEventListener('input', function(e) {
+            formatSocialMedia(e.target);
+            validateSocialMedia(e.target, 'twitter');
+        });
+    }
+    
+    // Contador de caracteres para descrição
+    const descricaoInput = document.getElementById('edit-descricao');
+    if (descricaoInput) {
+        descricaoInput.addEventListener('input', function(e) {
+            updateCharCounter(e.target);
+        });
+    }
+    
+    // Estado com validação de 2 caracteres
+    const estadoInput = document.getElementById('edit-endereco-estado');
+    if (estadoInput) {
+        estadoInput.addEventListener('input', function(e) {
+            e.target.value = e.target.value.toUpperCase().slice(0, 2);
+        });
+    }
+}
+
+function validateWhatsApp(input) {
+    const value = input.value;
+    const errorElement = document.getElementById('whatsapp-error');
+    
+    if (!value) {
+        input.classList.remove('error', 'success');
+        errorElement.style.display = 'none';
+        return true;
+    }
+    
+    const phoneRegex = /^\(\d{2}\) \d{4,5}-\d{4}$/;
+    const isValid = phoneRegex.test(value);
+    
+    if (isValid) {
+        input.classList.remove('error');
+        input.classList.add('success');
+        errorElement.style.display = 'none';
+    } else {
+        input.classList.remove('success');
+        input.classList.add('error');
+        errorElement.textContent = 'Formato inválido. Use: (11) 99999-9999';
+        errorElement.style.display = 'flex';
+    }
+    
+    return isValid;
+}
+
+function formatSocialMedia(input) {
+    let value = input.value;
+    if (value && !value.startsWith('@')) {
+        value = '@' + value;
+        input.value = value;
+    }
+}
+
+function validateSocialMedia(input, platform) {
+    const value = input.value;
+    const errorElement = document.getElementById(`${platform}-error`);
+    
+    if (!value || value === '@') {
+        input.classList.remove('error', 'success');
+        errorElement.style.display = 'none';
+        return true;
+    }
+    
+    let isValid = false;
+    let errorMessage = '';
+    
+    switch (platform) {
+        case 'instagram':
+            isValid = /^@[a-zA-Z0-9_.]{1,29}$/.test(value);
+            errorMessage = 'Use apenas letras, números, _ e .';
+            break;
+        case 'facebook':
+            isValid = /^@[a-zA-Z0-9.]{1,49}$/.test(value);
+            errorMessage = 'Use apenas letras, números e .';
+            break;
+        case 'twitter':
+            isValid = /^@[a-zA-Z0-9_]{1,14}$/.test(value);
+            errorMessage = 'Use apenas letras, números e _';
+            break;
+    }
+    
+    if (isValid) {
+        input.classList.remove('error');
+        input.classList.add('success');
+        errorElement.style.display = 'none';
+    } else {
+        input.classList.remove('success');
+        input.classList.add('error');
+        errorElement.textContent = errorMessage;
+        errorElement.style.display = 'flex';
+    }
+    
+    return isValid;
+}
+
+function updateCharCounter(textarea) {
+    const charCount = textarea.value.length;
+    const maxLength = parseInt(textarea.getAttribute('maxlength'));
+    const counter = document.getElementById('char-count');
+    const counterElement = document.getElementById('descricao-counter');
+    
+    if (counter) {
+        counter.textContent = charCount;
+    }
+    
+    if (counterElement) {
+        counterElement.classList.remove('warning', 'danger');
+        
+        if (charCount >= maxLength * 0.9) {
+            counterElement.classList.add('danger');
+        } else if (charCount >= maxLength * 0.7) {
+            counterElement.classList.add('warning');
+        }
+    }
+}
+
+function validateAllFields() {
+    const whatsappValid = validateWhatsApp(document.getElementById('edit-whatsapp'));
+    const instagramValid = validateSocialMedia(document.getElementById('edit-instagram'), 'instagram');
+    const facebookValid = validateSocialMedia(document.getElementById('edit-facebook'), 'facebook');
+    const twitterValid = validateSocialMedia(document.getElementById('edit-twitter'), 'twitter');
+    
+    return whatsappValid && instagramValid && facebookValid && twitterValid;
+}
+
+// === CORREÇÕES PARA CAMPOS SELECT ===
+function fixSelectFields() {
+    const selectElements = document.querySelectorAll('select');
+    
+    selectElements.forEach(select => {
+        // Remover todos os event listeners anteriores
+        const newSelect = select.cloneNode(true);
+        select.parentNode.replaceChild(newSelect, select);
+        
+        // Aplicar correções no novo elemento
+        applySelectFixes(newSelect);
+    });
+}
+
+function applySelectFixes(select) {
+    // Prevenir interferência de eventos
+    select.addEventListener('mousedown', function(e) {
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+    }, { passive: false, capture: true });
+    
+    select.addEventListener('click', function(e) {
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        
+        // Forçar foco se não estiver focado
+        if (document.activeElement !== this) {
+            this.focus();
+        }
+    }, { passive: false, capture: true });
+    
+    // Melhorar comportamento em mobile
+    select.addEventListener('touchstart', function(e) {
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        this.focus();
+    }, { passive: false, capture: true });
+    
+    select.addEventListener('touchend', function(e) {
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+    }, { passive: false, capture: true });
+    
+    // Prevenir fechamento por cliques externos durante um tempo
+    let isOpening = false;
+    select.addEventListener('focus', function() {
+        isOpening = true;
+        setTimeout(() => { isOpening = false; }, 500);
+    });
+    
+    // Garantir que o label se mova quando uma opção é selecionada
+    select.addEventListener('change', function(e) {
+        e.stopPropagation();
+        
+        if (this.value) {
+            this.setAttribute('data-selected', 'true');
+            this.setAttribute('data-has-value', 'true');
+        } else {
+            this.removeAttribute('data-selected');
+            this.removeAttribute('data-has-value');
+        }
+        
+        // Forçar update do label
+        this.blur();
+        setTimeout(() => this.focus(), 10);
+    });
+    
+    // Verificar se já tem valor selecionado ao carregar
+    if (select.value && select.value !== '') {
+        select.setAttribute('data-selected', 'true');
+        select.setAttribute('data-has-value', 'true');
+    }
+    
+    // Adicionar delay antes de permitir blur
+    select.addEventListener('mouseup', function() {
+        setTimeout(() => {
+            // Apenas processa se ainda tem foco
+            if (document.activeElement === this) {
+                // Mantém foco por mais tempo
+            }
+        }, 100);
+    });
+}
+
+// === SOLUÇÃO ALTERNATIVA COM CUSTOM DROPDOWN ===
+function createCustomDropdown(selectElement) {
+    const formFloating = selectElement.closest('.form-floating');
+    const label = formFloating ? formFloating.querySelector('label') : null;
+    
+    const wrapper = document.createElement('div');
+    wrapper.className = 'custom-select-wrapper';
+    
+    const display = document.createElement('div');
+    display.className = 'custom-select-display';
+    display.textContent = selectElement.querySelector('option[value=""]').textContent || 'Selecione...';
+    
+    const dropdown = document.createElement('div');
+    dropdown.className = 'custom-select-dropdown';
+    
+    const options = selectElement.querySelectorAll('option');
+    options.forEach(option => {
+        if (option.value === '') return; // Skip placeholder
+        
+        const optionDiv = document.createElement('div');
+        optionDiv.className = 'custom-select-option';
+        optionDiv.textContent = option.textContent;
+        optionDiv.setAttribute('data-value', option.value);
+        
+        optionDiv.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Update select and display
+            selectElement.value = this.getAttribute('data-value');
+            display.textContent = this.textContent;
+            dropdown.classList.remove('open');
+            
+            // Update wrapper classes for label animation
+            wrapper.classList.add('has-value');
+            wrapper.classList.remove('focused', 'empty-state');
+            
+            // Trigger change event
+            const event = new Event('change', { bubbles: true });
+            selectElement.dispatchEvent(event);
+            
+            // Update attributes for label
+            selectElement.setAttribute('data-selected', 'true');
+            selectElement.setAttribute('data-has-value', 'true');
+        });
+        
+        dropdown.appendChild(optionDiv);
+    });
+    
+    display.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // Toggle dropdown
+        const isOpen = dropdown.classList.contains('open');
+        
+        // Close all other dropdowns
+        document.querySelectorAll('.custom-select-dropdown.open').forEach(dd => {
+            dd.classList.remove('open');
+        });
+        document.querySelectorAll('.custom-select-wrapper.focused').forEach(w => {
+            w.classList.remove('focused');
+        });
+        
+        if (!isOpen) {
+            dropdown.classList.add('open');
+            wrapper.classList.add('focused');
+        }
+    });
+    
+    // Handle focus/blur for label animation
+    display.addEventListener('focus', function() {
+        wrapper.classList.add('focused');
+    });
+    
+    display.addEventListener('blur', function() {
+        if (!dropdown.classList.contains('open')) {
+            wrapper.classList.remove('focused');
+        }
+    });
+    
+    // Close on outside click
+    document.addEventListener('click', function(e) {
+        if (!wrapper.contains(e.target)) {
+            dropdown.classList.remove('open');
+            wrapper.classList.remove('focused');
+        }
+    });
+    
+    // Close on escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            dropdown.classList.remove('open');
+            wrapper.classList.remove('focused');
+        }
+    });
+    
+    wrapper.appendChild(display);
+    wrapper.appendChild(dropdown);
+    
+    // Check if select already has value
+    if (selectElement.value && selectElement.value !== '') {
+        wrapper.classList.add('has-value');
+        wrapper.classList.remove('empty-state');
+        display.textContent = selectElement.querySelector(`option[value="${selectElement.value}"]`).textContent;
+    } else {
+        // Estado inicial vazio
+        wrapper.classList.add('empty-state');
+        wrapper.classList.remove('has-value');
+    }
+    
+    selectElement.style.display = 'none';
+    selectElement.parentNode.insertBefore(wrapper, selectElement);
+    
+    return wrapper;
+}
+
+// === IMPLEMENTAR CUSTOM DROPDOWNS PARA CAMPOS PROBLEMÁTICOS ===
+function implementCustomDropdowns() {
+    const problematicSelects = ['pet-species', 'pet-gender'];
+    
+    problematicSelects.forEach(id => {
+        const select = document.getElementById(id);
+        if (select && !select.hasAttribute('data-custom-created')) {
+            createCustomDropdown(select);
+            select.setAttribute('data-custom-created', 'true');
+        }
+    });
+}
+
+// === CONFIGURAR EVENT LISTENERS ===
+document.addEventListener('DOMContentLoaded', function() {
+    setupProfileTabs();
+    
+    // Implementar custom dropdowns para campos problemáticos
+    setTimeout(() => {
+        implementCustomDropdowns();
+    }, 100);
+    
+    // Corrigir outros campos select (que não são problemáticos)
+    setTimeout(() => {
+        const otherSelects = document.querySelectorAll('select:not([data-custom-created])');
+        otherSelects.forEach(select => {
+            applySelectFixes(select);
+        });
+    }, 200);
+    
+    // Botões de edição inline do perfil
+    const editProfileBtn = document.getElementById('edit-profile-btn');
+    if (editProfileBtn) {
+        editProfileBtn.addEventListener('click', toggleProfileEdit);
+    }
+    
+    const saveProfileBtn = document.getElementById('save-profile-btn');
+    if (saveProfileBtn) {
+        saveProfileBtn.addEventListener('click', saveProfileChanges);
+    }
+    
+    const cancelEditBtn = document.getElementById('cancel-edit-btn');
+    if (cancelEditBtn) {
+        cancelEditBtn.addEventListener('click', cancelProfileEdit);
+    }
+});
+
+// Exportar funções para window
 window.showPetModal = showPetModal;
 window.markAsFound = markAsFound;
 window.showLogin = showLogin;
@@ -1306,3 +2054,4 @@ window.changeSlide = changeSlide;
 window.scrollToTop = scrollToTop;
 window.closeModal = closeModal;
 window.showSection = showSection;
+window.closeTip = closeTip;

@@ -740,6 +740,7 @@
 
                 <div id="profile-container" class="profile-container" style="display: none;">
                     <div class="profile-wrapper glass-card">
+                        <!-- Header do Perfil -->
                         <div class="profile-header">
                             <div class="profile-avatar">
                                 <i class="fas fa-user"></i>
@@ -747,20 +748,223 @@
                             <div class="profile-info">
                                 <h2 id="profile-name"></h2>
                                 <p id="profile-email"></p>
+                                <div class="profile-stats">
+                                    <span id="profile-member-since">Membro desde: -</span>
+                                    <div class="profile-completion">
+                                        <div class="completion-bar">
+                                            <div id="completion-progress" class="completion-fill"></div>
+                                        </div>
+                                        <span id="completion-text">Perfil 30% completo</span>
+                                    </div>
+                                </div>
                             </div>
-                            <button id="logout-btn" class="btn btn-danger btn-small">
-                                <i class="fas fa-sign-out-alt"></i>
-                                Sair
+                            <div class="profile-actions">
+                                <button id="edit-profile-btn" class="btn btn-primary btn-small">
+                                    <i class="fas fa-edit"></i>
+                                    Editar Perfil
+                                </button>
+                                <button id="save-profile-btn" class="btn btn-success btn-small" style="display: none;">
+                                    <i class="fas fa-save"></i>
+                                    Salvar
+                                </button>
+                                <button id="cancel-edit-btn" class="btn btn-secondary btn-small" style="display: none;">
+                                    <i class="fas fa-times"></i>
+                                    Cancelar
+                                </button>
+                                <button id="logout-btn" class="btn btn-danger btn-small">
+                                    <i class="fas fa-sign-out-alt"></i>
+                                    Sair
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Dica de Completude -->
+                        <div id="profile-tip" class="profile-tip glass-card" style="display: none;">
+                            <div class="tip-icon">
+                                <i class="fas fa-lightbulb"></i>
+                            </div>
+                            <div class="tip-content">
+                                <h4>💡 Complete seu perfil!</h4>
+                                <p>Perfis completos têm 3x mais chances de contato para reencontros.</p>
+                                <p id="tip-missing-fields">Faltam: WhatsApp, Descrição</p>
+                            </div>
+                            <button class="tip-close" onclick="closeTip()">
+                                <i class="fas fa-times"></i>
                             </button>
                         </div>
 
-                        <div class="profile-section">
-                            <h3>
+                        <!-- Navegação do Perfil -->
+                        <div class="profile-tabs">
+                            <button class="profile-tab active" data-tab="info">
+                                <i class="fas fa-user"></i>
+                                Perfil
+                            </button>
+                            <button class="profile-tab" data-tab="pets">
                                 <i class="fas fa-paw"></i>
-                                Meus Pets Registrados
-                            </h3>
-                            <div id="user-pets" class="pets-grid">
-                                <!-- Pets do usuário serão carregados aqui -->
+                                Meus Pets
+                            </button>
+                            <button class="profile-tab" data-tab="stats">
+                                <i class="fas fa-chart-bar"></i>
+                                Estatísticas
+                            </button>
+                        </div>
+
+                        <!-- Conteúdo das Abas -->
+                        <div class="profile-content">
+                            <!-- Aba Informações -->
+                            <div id="tab-info" class="tab-content active">
+                                <div class="profile-sections">
+                                    <!-- Contato -->
+                                    <div class="profile-section">
+                                        <h3 class="section-title">
+                                            <i class="fas fa-phone"></i>
+                                            Informações de Contato
+                                        </h3>
+                                        <div class="info-grid">
+                                            <div class="info-item" data-contact="whatsapp">
+                                                <label>WhatsApp</label>
+                                                <span id="profile-whatsapp" class="editable-field"></span>
+                                                <input type="tel" id="edit-whatsapp" class="editable-input" style="display: none;" 
+                                                       placeholder="(11) 99999-9999" maxlength="15" 
+                                                       pattern="^\(\d{2}\) \d{4,5}-\d{4}$">
+                                                <span class="validation-error" id="whatsapp-error" style="display: none;"></span>
+                                            </div>
+                                            <div class="info-item" data-contact="email">
+                                                <label>E-mail</label>
+                                                <span id="profile-email-display"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Endereço -->
+                                    <div class="profile-section">
+                                        <h3 class="section-title">
+                                            <i class="fas fa-home"></i>
+                                            Localização
+                                        </h3>
+                                        <div class="info-grid">
+                                            <div class="info-item">
+                                                <label>Endereço</label>
+                                                <span id="profile-endereco-rua" class="editable-field"></span>
+                                                <input type="text" id="edit-endereco-rua" class="editable-input" style="display: none;" placeholder="Rua, número" maxlength="100">
+                                            </div>
+                                            <div class="info-item">
+                                                <label>Bairro</label>
+                                                <span id="profile-bairro" class="editable-field"></span>
+                                                <input type="text" id="edit-endereco-bairro" class="editable-input" style="display: none;" placeholder="Nome do bairro" maxlength="50">
+                                            </div>
+                                            <div class="info-item">
+                                                <label>Cidade</label>
+                                                <span id="profile-cidade" class="editable-field"></span>
+                                                <input type="text" id="edit-endereco-cidade" class="editable-input" style="display: none;" placeholder="Cidade" maxlength="50">
+                                            </div>
+                                            <div class="info-item">
+                                                <label>Estado</label>
+                                                <span id="profile-estado" class="editable-field"></span>
+                                                <input type="text" id="edit-endereco-estado" class="editable-input" style="display: none;" placeholder="Estado" maxlength="2">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Redes Sociais -->
+                                    <div class="profile-section">
+                                        <h3 class="section-title">
+                                            <i class="fas fa-share-alt"></i>
+                                            Redes Sociais
+                                        </h3>
+                                        <div class="info-grid">
+                                            <div class="info-item" data-social="instagram">
+                                                <label>Instagram</label>
+                                                <span id="profile-instagram" class="editable-field"></span>
+                                                <input type="text" id="edit-instagram" class="editable-input" style="display: none;" 
+                                                       placeholder="@usuario" maxlength="30" pattern="^@?[a-zA-Z0-9_.]+$">
+                                                <span class="validation-error" id="instagram-error" style="display: none;"></span>
+                                            </div>
+                                            <div class="info-item" data-social="facebook">
+                                                <label>Facebook</label>
+                                                <span id="profile-facebook" class="editable-field"></span>
+                                                <input type="text" id="edit-facebook" class="editable-input" style="display: none;" 
+                                                       placeholder="@usuario" maxlength="50" pattern="^@?[a-zA-Z0-9.]+$">
+                                                <span class="validation-error" id="facebook-error" style="display: none;"></span>
+                                            </div>
+                                            <div class="info-item" data-social="twitter">
+                                                <label>Twitter</label>
+                                                <span id="profile-twitter" class="editable-field"></span>
+                                                <input type="text" id="edit-twitter" class="editable-input" style="display: none;" 
+                                                       placeholder="@usuario" maxlength="15" pattern="^@?[a-zA-Z0-9_]+$">
+                                                <span class="validation-error" id="twitter-error" style="display: none;"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Sobre -->
+                                    <div class="profile-section">
+                                        <h3 class="section-title">
+                                            <i class="fas fa-info-circle"></i>
+                                            Sobre Mim
+                                        </h3>
+                                        <div id="profile-descricao" class="profile-description editable-field">
+                                            <p>Nenhuma descrição cadastrada</p>
+                                        </div>
+                                        <textarea id="edit-descricao" class="editable-textarea" style="display: none;" 
+                                                  placeholder="Conte um pouco sobre você..." rows="4" maxlength="500"></textarea>
+                                        <div class="char-counter" id="descricao-counter" style="display: none;">
+                                            <span id="char-count">0</span>/500 caracteres
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Aba Pets -->
+                            <div id="tab-pets" class="tab-content">
+                                <div class="profile-section">
+                                    <h3 class="section-title">
+                                        <i class="fas fa-paw"></i>
+                                        Meus Pets Registrados
+                                    </h3>
+                                    <div id="user-pets" class="pets-grid">
+                                        <!-- Pets do usuário serão carregados aqui -->
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Aba Estatísticas -->
+                            <div id="tab-stats" class="tab-content">
+                                <div class="profile-section">
+                                    <h3 class="section-title">
+                                        <i class="fas fa-chart-bar"></i>
+                                        Suas Estatísticas
+                                    </h3>
+                                    <div class="stats-grid">
+                                        <div class="stat-card">
+                                            <div class="stat-icon">
+                                                <i class="fas fa-paw"></i>
+                                            </div>
+                                            <div class="stat-content">
+                                                <h4 id="user-pets-count">0</h4>
+                                                <p>Pets Registrados</p>
+                                            </div>
+                                        </div>
+                                        <div class="stat-card">
+                                            <div class="stat-icon">
+                                                <i class="fas fa-heart"></i>
+                                            </div>
+                                            <div class="stat-content">
+                                                <h4 id="user-reunions-count">0</h4>
+                                                <p>Reencontros</p>
+                                            </div>
+                                        </div>
+                                        <div class="stat-card">
+                                            <div class="stat-icon">
+                                                <i class="fas fa-calendar"></i>
+                                            </div>
+                                            <div class="stat-content">
+                                                <h4 id="user-days-member">0</h4>
+                                                <p>Dias como Membro</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -781,6 +985,7 @@
             </div>
         </div>
     </div>
+
 
     <!-- Notification -->
     <div id="notification" class="notification">

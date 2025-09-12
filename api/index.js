@@ -10,7 +10,23 @@ app.use(express.json());
 const UsuarioSchema = new mongoose.Schema({
   nome: String,
   email: { type: String, unique: true },
-  senha: String
+  senha: String,
+  whatsapp: { type: String, default: '' },
+  descricao: { type: String, default: '' },
+  endereco: {
+    rua: { type: String, default: '' },
+    bairro: { type: String, default: '' },
+    cidade: { type: String, default: '' },
+    estado: { type: String, default: '' }
+  },
+  redesSociais: {
+    facebook: { type: String, default: '' },
+    instagram: { type: String, default: '' },
+    twitter: { type: String, default: '' }
+  },
+  dataCadastro: { type: Date, default: Date.now },
+  ultimoLogin: { type: Date, default: Date.now },
+  petsRegistrados: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Pet' }]
 }, { timestamps: true });
 
 const PetSchema = new mongoose.Schema({
@@ -518,6 +534,97 @@ app.get('/api/pets/historico/reencontros', async (req, res) => {
       pets: petsFormatted
     });
   } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Erro interno do servidor'
+    });
+  }
+});
+
+// === ATUALIZAR PERFIL DO USUÁRIO ===
+app.put('/api/usuario/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const dadosUpdate = req.body;
+    
+    // Validar se o ID é válido
+    if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'ID de usuário inválido'
+      });
+    }
+    
+    // Buscar usuário existente
+    const usuarioExistente = await Usuario.findById(id);
+    if (!usuarioExistente) {
+      return res.status(404).json({
+        success: false,
+        message: 'Usuário não encontrado'
+      });
+    }
+    
+    // Preparar dados para atualização
+    const updateData = {};
+    
+    if (dadosUpdate.whatsapp !== undefined) updateData.whatsapp = dadosUpdate.whatsapp;
+    if (dadosUpdate.descricao !== undefined) updateData.descricao = dadosUpdate.descricao;
+    
+    if (dadosUpdate.endereco) {
+      updateData.endereco = {
+        rua: dadosUpdate.endereco.rua || '',
+        bairro: dadosUpdate.endereco.bairro || '',
+        cidade: dadosUpdate.endereco.cidade || '',
+        estado: dadosUpdate.endereco.estado || ''
+      };
+    }
+    
+    if (dadosUpdate.redesSociais) {
+      updateData.redesSociais = {
+        facebook: dadosUpdate.redesSociais.facebook || '',
+        instagram: dadosUpdate.redesSociais.instagram || '',
+        twitter: dadosUpdate.redesSociais.twitter || ''
+      };
+    }
+    
+    updateData.ultimoLogin = new Date();
+    
+    // Atualizar usuário
+    const usuarioAtualizado = await Usuario.findByIdAndUpdate(
+      id,
+      updateData,
+      { new: true, runValidators: true }
+    );
+    
+    if (!usuarioAtualizado) {
+      return res.status(404).json({
+        success: false,
+        message: 'Erro ao atualizar usuário'
+      });
+    }
+    
+    // Retornar usuário atualizado (sem a senha)
+    const usuarioResponse = {
+      id: usuarioAtualizado._id,
+      nome: usuarioAtualizado.nome,
+      email: usuarioAtualizado.email,
+      whatsapp: usuarioAtualizado.whatsapp,
+      descricao: usuarioAtualizado.descricao,
+      endereco: usuarioAtualizado.endereco,
+      redesSociais: usuarioAtualizado.redesSociais,
+      dataCadastro: usuarioAtualizado.dataCadastro,
+      ultimoLogin: usuarioAtualizado.ultimoLogin,
+      petsRegistrados: usuarioAtualizado.petsRegistrados
+    };
+    
+    res.json({
+      success: true,
+      message: 'Perfil atualizado com sucesso!',
+      usuario: usuarioResponse
+    });
+    
+  } catch (error) {
+    console.error('Erro ao atualizar perfil:', error);
     res.status(500).json({
       success: false,
       message: 'Erro interno do servidor'

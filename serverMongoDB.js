@@ -210,6 +210,35 @@ app.get('/api/auth/user/:id', async (req, res) => {
   }
 });
 
+// PUT /api/usuario/:id - Atualizar perfil do usuário
+app.put('/api/usuario/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const dadosUpdate = req.body;
+    
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: 'ID de usuário é obrigatório'
+      });
+    }
+    
+    const resultado = await authService.atualizarPerfil(id, dadosUpdate);
+    
+    if (resultado.success) {
+      res.json(resultado);
+    } else {
+      res.status(400).json(resultado);
+    }
+  } catch (error) {
+    console.error('Erro ao atualizar perfil:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erro interno do servidor'
+    });
+  }
+});
+
 // === ROTAS DE PETS ===
 
 // GET /api/pets - Listar todos os pets ou filtrar por status
